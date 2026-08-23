@@ -1,0 +1,37 @@
+{
+  "buildCommand": "npm run build",
+  "framework": "nextjs",
+  "installCommand": "npm install",
+  "functions": {
+    "src/app/**/*.{js,ts,tsx}": {
+      "memory": 1024,
+      "maxDuration": 30
+    },
+    "src/app/api/**/*.{js,ts}": {
+      "memory": 1024,
+      "maxDuration": 30
+    }
+  },
+  "crons": [],
+  "rewrites": [],
+  "redirects": [],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    }
+  ]
+}

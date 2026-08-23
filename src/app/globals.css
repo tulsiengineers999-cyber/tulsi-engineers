@@ -1,0 +1,110 @@
+@import "tailwindcss";
+@source "../**/*.{ts,tsx,js,jsx,html}";
+
+/* ── TULSI ENGINEERS design tokens ──────────────────────────
+   Colours are driven by CSS variables so Admin → Settings → Theme
+   can restyle the whole application without a rebuild.            */
+:root {
+  --te-primary: #0f4c81;
+  --te-primary-dark: #0b3a63;
+  --te-primary-light: #e8f1f9;
+  --te-accent: #f26522;
+  --te-accent-light: #fdeee6;
+  --te-sidebar: #0b2e4f;
+
+  --te-bg: #f4f6f9;
+  --te-surface: #ffffff;
+  --te-border: #e2e8f0;
+  --te-text: #0f172a;
+  --te-muted: #64748b;
+
+  --te-success: #15803d;
+  --te-success-bg: #dcfce7;
+  --te-warning: #b45309;
+  --te-warning-bg: #fef3c7;
+  --te-danger: #b91c1c;
+  --te-danger-bg: #fee2e2;
+  --te-info: #1d4ed8;
+  --te-info-bg: #dbeafe;
+  --te-neutral: #475569;
+  --te-neutral-bg: #f1f5f9;
+}
+
+@theme inline {
+  --color-primary: var(--te-primary);
+  --color-primary-dark: var(--te-primary-dark);
+  --color-primary-light: var(--te-primary-light);
+  --color-accent: var(--te-accent);
+  --color-accent-light: var(--te-accent-light);
+  --color-sidebar: var(--te-sidebar);
+  --color-surface: var(--te-surface);
+  --color-canvas: var(--te-bg);
+  --color-line: var(--te-border);
+  --color-ink: var(--te-text);
+  --color-muted: var(--te-muted);
+  --font-sans: var(--font-inter), system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  background: var(--te-bg);
+  color: var(--te-text);
+  font-family: var(--font-inter), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Respect the safe area on notched phones for the field interface */
+.pb-safe {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 0.5rem);
+}
+
+/* Thin, unobtrusive scrollbars on desktop */
+@media (pointer: fine) {
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 8px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+    background-clip: content-box;
+  }
+}
+
+/* Focus ring used by every interactive control */
+.te-focus:focus-visible {
+  outline: 2px solid var(--te-primary);
+  outline-offset: 2px;
+}
+
+@keyframes te-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+.animate-in {
+  animation: te-fade-in 0.18s ease-out;
+}
+
+@keyframes te-slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+.animate-slide-up {
+  animation: te-slide-up 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Print: strip chrome so any screen prints cleanly */
+@media print {
+  .no-print { display: none !important; }
+  body { background: #fff; }
+  .print-full { box-shadow: none !important; border: none !important; }
+}

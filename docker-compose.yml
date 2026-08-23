@@ -1,0 +1,66 @@
+# Self-hosted deployment: application, PostgreSQL and S3-compatible storage.
+# For a managed deployment (Vercel + Neon/Supabase) none of this is needed —
+# see docs/DEPLOYMENT.md.
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: tulsi
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: tulsi_engineers
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tulsi -d tulsi_engineers"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  storage:
+    image: minio/minio:latest
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY_ID:?set S3_ACCESS_KEY_ID in .env}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_ACCESS_KEY:?set S3_SECRET_ACCESS_KEY in .env}
+    volumes:
+      - storage-data:/data
+    ports:
+      - "9001:9001"   # console — do not expose this publicly
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://tulsi:${POSTGRES_PASSWORD}@db:5432/tulsi_engineers?schema=public
+      APP_URL: ${APP_URL:?set APP_URL in .env}
+      AUTH_SECRET: ${AUTH_SECRET:?set AUTH_SECRET in .env}
+      OTP_PEPPER: ${OTP_PEPPER:?set OTP_PEPPER in .env}
+      STORAGE_DRIVER: S3
+      S3_ENDPOINT: http://storage:9000
+      S3_REGION: us-east-1
+      S3_BUCKET: ${S3_BUCKET:-tulsi-engineers}
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY}
+      MAIL_DRIVER: ${MAIL_DRIVER:-LOG}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-TULSI ENGINEERS}
+      MAIL_FROM_EMAIL: ${MAIL_FROM_EMAIL:-}
+      WHATSAPP_DRIVER: ${WHATSAPP_DRIVER:-LOG}
+      WHATSAPP_PHONE_NUMBER_ID: ${WHATSAPP_PHONE_NUMBER_ID:-}
+      WHATSAPP_BUSINESS_ACCOUNT_ID: ${WHATSAPP_BUSINESS_ACCOUNT_ID:-}
+      WHATSAPP_ACCESS_TOKEN: ${WHATSAPP_ACCESS_TOKEN:-}
+    ports:
+      - "3000:3000"
+
+volumes:
+  db-data:
+  storage-data:

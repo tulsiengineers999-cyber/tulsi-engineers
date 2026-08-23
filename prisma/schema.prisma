@@ -1,0 +1,1174 @@
+// TULSI ENGINEERS - Service & Site Work Management
+// Prisma schema. Target: PostgreSQL (Neon / Supabase / any managed PG).
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────────────────────
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  LOCKED
+}
+
+enum RecordStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum JobStatus {
+  NEW
+  ASSIGNED
+  SITE_VISIT
+  MOM_CREATED
+  WORK_STARTED
+  WORK_IN_PROGRESS
+  CONFIRMATION_PENDING
+  COMPLETED
+  CLOSED
+  CANCELLED
+}
+
+enum DocWorkflowStatus {
+  DRAFT
+  SUBMITTED
+  PDF_GENERATED
+  SENT_TO_CLIENT
+  CONFIRMATION_PENDING
+  CLIENT_CONFIRMED
+  CORRECTION_REQUESTED
+  CLOSED
+}
+
+enum ActionPointStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  ON_HOLD
+  CANCELLED
+}
+
+enum ResponsibleParty {
+  TULSI_ENGINEERS
+  CUSTOMER
+  THIRD_PARTY
+}
+
+enum DocumentType {
+  MOM
+  DAILY_WORK_REPORT
+  FINAL_SERVICE_REPORT
+  SITE_VISIT_REPORT
+  AMC_REPORT
+  INSPECTION_REPORT
+}
+
+enum PhotoCategory {
+  BEFORE_WORK
+  DURING_WORK
+  AFTER_WORK
+  EQUIPMENT
+  DAMAGE
+  REPAIR
+  INSTALLATION
+  TESTING
+  COMPLETED_WORK
+  OTHER
+}
+
+enum EquipmentType {
+  BOILER
+  STEAM_BOILER
+  THERMIC_FLUID_HEATER
+  STEAM_GENERATOR
+  HOT_AIR_GENERATOR
+  HOT_WATER_GENERATOR
+  CHIMNEY
+  POLLUTION_CONTROL_EQUIPMENT
+  PRESSURE_VESSEL
+  PIPING
+  PUMP
+  BURNER
+  CONTROL_PANEL
+  OTHER
+}
+
+enum AmcStatus {
+  UNDER_AMC
+  NOT_UNDER_AMC
+  EXPIRED
+  PROPOSED
+}
+
+enum ChannelStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+enum OtpPurpose {
+  MOM_CONFIRMATION
+  DAILY_REPORT_CONFIRMATION
+  FINAL_REPORT_CONFIRMATION
+  LOGIN_2FA
+}
+
+enum OtpChannel {
+  WHATSAPP
+  SMS
+  EMAIL
+}
+
+enum ConfirmationStatus {
+  PENDING
+  CONFIRMED
+  CORRECTION_REQUESTED
+  EXPIRED
+}
+
+enum NotificationType {
+  NEW_JOB
+  JOB_ASSIGNED
+  VISIT_UPCOMING
+  JOB_OVERDUE
+  MOM_PENDING
+  CONFIRMATION_PENDING
+  DAILY_REPORT_PENDING
+  REPORT_CONFIRMED
+  JOB_COMPLETED
+  TARGET_DATE_APPROACHING
+  ACTION_POINT_DUE
+}
+
+enum AuditAction {
+  LOGIN
+  LOGIN_FAILED
+  LOGOUT
+  CREATE
+  UPDATE
+  DELETE
+  STATUS_CHANGE
+  PDF_GENERATED
+  EMAIL_SENT
+  WHATSAPP_SENT
+  CLIENT_CONFIRMED
+  CORRECTION_REQUESTED
+  USER_CHANGED
+  SETTINGS_CHANGED
+  OTP_SENT
+  OTP_VERIFIED
+  OTP_FAILED
+  EXPORT
+}
+
+// ─────────────────────────────────────────────────────────────
+// AUTH / RBAC
+// ─────────────────────────────────────────────────────────────
+
+model Role {
+  id          String   @id @default(cuid())
+  code        String   @unique               // SUPER_ADMIN, ADMIN, ...
+  name        String
+  description String?
+  isSystem    Boolean  @default(false)       // system roles cannot be deleted
+  rank        Int      @default(100)         // lower = more powerful
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users           User[]
+  rolePermissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id       String  @id @default(cuid())
+  code     String  @unique                   // customer.create, mom.approve, ...
+  module   String                            // customers, mom, settings...
+  action   String                            // view/create/edit/delete/approve...
+  label    String
+  createdAt DateTime @default(now())
+
+  rolePermissions RolePermission[]
+
+  @@index([module])
+  @@map("permissions")
+}
+
+model RolePermission {
+  id           String @id @default(cuid())
+  roleId       String
+  permissionId String
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@index([roleId])
+  @@map("role_permissions")
+}
+
+model User {
+  id                 String     @id @default(cuid())
+  employeeCode       String?    @unique
+  name               String
+  email              String     @unique
+  username           String?    @unique
+  passwordHash       String
+  mobile             String?
+  whatsapp           String?
+  designation        String?
+  department         String?
+  roleId             String
+  status             UserStatus @default(ACTIVE)
+  isEngineer         Boolean    @default(false)
+  isTechnician       Boolean    @default(false)
+  avatarUrl          String?
+  twoFactorEnabled   Boolean    @default(false)
+  mustChangePassword Boolean    @default(false)
+  failedLoginCount   Int        @default(0)
+  lockedUntil        DateTime?
+  lastLoginAt        DateTime?
+  passwordChangedAt  DateTime?
+  createdById        String?
+  updatedById        String?
+  deletedAt          DateTime?
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  role     Role       @relation(fields: [roleId], references: [id])
+  sessions Session[]
+  loginHistory      LoginHistory[]
+  passwordResets    PasswordResetToken[]
+  auditLogs         AuditLog[]
+  notifications     Notification[]
+
+  jobsAsEngineer    ServiceJob[]     @relation("JobEngineer")
+  jobsAsTechnician  ServiceJob[]     @relation("JobTechnician")
+  jobsCreated       ServiceJob[]     @relation("JobCreatedBy")
+  assignments       JobAssignment[]
+  visitsAsEngineer  SiteVisit[]      @relation("VisitEngineer")
+  dailyReports      DailyWorkReport[] @relation("DailyReportEngineer")
+  momsCreated       Mom[]            @relation("MomCreatedBy")
+  photosUploaded    Photo[]
+  documentsUploaded Document[]
+
+  @@index([roleId])
+  @@index([status])
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  userAgent String?
+  ipAddress String?
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model LoginHistory {
+  id        String   @id @default(cuid())
+  userId    String?
+  email     String
+  success   Boolean
+  reason    String?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("login_history")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_reset_tokens")
+}
+
+// ─────────────────────────────────────────────────────────────
+// MASTERS
+// ─────────────────────────────────────────────────────────────
+
+model Customer {
+  id             String       @id @default(cuid())
+  code           String       @unique          // CUST-0001
+  companyName    String
+  contactPerson  String?
+  department     String?
+  designation    String?
+  mobile         String?
+  whatsapp       String?
+  email          String?
+  altEmail       String?
+  gstNumber      String?
+  industry       String?
+  billingAddress String?
+  city           String?
+  state          String?
+  pinCode        String?
+  status         RecordStatus @default(ACTIVE)
+  remarks        String?
+  createdById    String?
+  updatedById    String?
+  deletedAt      DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  contacts    CustomerContact[]
+  sites       Site[]
+  equipment   Equipment[]
+  jobs        ServiceJob[]
+  visits      SiteVisit[]
+  moms        Mom[]
+  finalReports FinalServiceReport[]
+  documents   Document[]
+
+  @@index([companyName])
+  @@index([status])
+  @@map("customers")
+}
+
+model CustomerContact {
+  id          String       @id @default(cuid())
+  customerId  String
+  name        String
+  designation String?
+  department  String?
+  mobile      String?
+  whatsapp    String?
+  email       String?
+  isPrimary   Boolean      @default(false)
+  status      RecordStatus @default(ACTIVE)
+  remarks     String?
+  deletedAt   DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@map("customer_contacts")
+}
+
+model Site {
+  id            String       @id @default(cuid())
+  code          String       @unique          // SITE-0001
+  customerId    String
+  name          String
+  address       String?
+  city          String?
+  state         String?
+  pinCode       String?
+  contactPerson String?
+  mobile        String?
+  whatsapp      String?
+  email         String?
+  latitude      Float?
+  longitude     Float?
+  siteType      String?
+  remarks       String?
+  status        RecordStatus @default(ACTIVE)
+  createdById   String?
+  updatedById   String?
+  deletedAt     DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  customer     Customer            @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  equipment    Equipment[]
+  jobs         ServiceJob[]
+  visits       SiteVisit[]
+  moms         Mom[]
+  finalReports FinalServiceReport[]
+  documents    Document[]
+
+  @@index([customerId])
+  @@index([name])
+  @@map("sites")
+}
+
+model Equipment {
+  id                String        @id @default(cuid())
+  code              String        @unique       // EQP-0001
+  customerId        String
+  siteId            String
+  type              EquipmentType @default(OTHER)
+  typeOther         String?
+  name              String
+  make              String?
+  model             String?
+  serialNumber      String?
+  capacity          String?
+  fuelType          String?
+  installationDate  DateTime?
+  commissioningDate DateTime?
+  warrantyUpto      DateTime?
+  amcStatus         AmcStatus     @default(NOT_UNDER_AMC)
+  amcValidUpto      DateTime?
+  specifications    Json?
+  remarks           String?
+  status            RecordStatus  @default(ACTIVE)
+  createdById       String?
+  updatedById       String?
+  deletedAt         DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  customer  Customer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  site      Site       @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  jobs      ServiceJob[]
+  photos    Photo[]
+  documents Document[]
+
+  @@index([customerId])
+  @@index([siteId])
+  @@index([serialNumber])
+  @@map("equipment")
+}
+
+model ServiceType {
+  id        String       @id @default(cuid())
+  name      String       @unique
+  category  String?
+  isSystem  Boolean      @default(false)
+  sortOrder Int          @default(100)
+  status    RecordStatus @default(ACTIVE)
+  deletedAt DateTime?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  jobs ServiceJob[]
+
+  @@map("service_types")
+}
+
+// ─────────────────────────────────────────────────────────────
+// JOBS & WORKFLOW
+// ─────────────────────────────────────────────────────────────
+
+model ServiceJob {
+  id                  String    @id @default(cuid())
+  jobNumber           String    @unique         // TE/JOB/2026-27/0001
+  customerId          String
+  siteId              String
+  equipmentId         String?
+  serviceTypeId       String
+  priority            Priority  @default(MEDIUM)
+  requestDate         DateTime  @default(now())
+  plannedVisitDate    DateTime?
+  targetCompletionDate DateTime?
+  completedAt         DateTime?
+  engineerId          String?
+  technicianId        String?
+  customerRequirement String?
+  problemDescription  String?
+  jobDescription      String?
+  requiredMaterial    String?
+  requiredSpare       String?
+  status              JobStatus @default(NEW)
+  progressPercent     Int       @default(0)
+  remarks             String?
+  sourceActionPointId String?   @unique        // when a MOM action point spawned this job
+  createdById         String?
+  updatedById         String?
+  deletedAt           DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  customer     Customer    @relation(fields: [customerId], references: [id])
+  site         Site        @relation(fields: [siteId], references: [id])
+  equipment    Equipment?  @relation(fields: [equipmentId], references: [id])
+  serviceType  ServiceType @relation(fields: [serviceTypeId], references: [id])
+  engineer     User?       @relation("JobEngineer", fields: [engineerId], references: [id])
+  technician   User?       @relation("JobTechnician", fields: [technicianId], references: [id])
+  createdBy    User?       @relation("JobCreatedBy", fields: [createdById], references: [id])
+  sourceActionPoint MomActionPoint? @relation(fields: [sourceActionPointId], references: [id])
+
+  assignments  JobAssignment[]
+  visits       SiteVisit[]
+  moms         Mom[]
+  dailyReports DailyWorkReport[]
+  finalReports FinalServiceReport[]
+  photos       Photo[]
+  documents    Document[]
+  statusHistory JobStatusHistory[]
+
+  @@index([customerId])
+  @@index([siteId])
+  @@index([status])
+  @@index([engineerId])
+  @@index([plannedVisitDate])
+  @@map("service_jobs")
+}
+
+model JobStatusHistory {
+  id         String    @id @default(cuid())
+  jobId      String
+  fromStatus JobStatus?
+  toStatus   JobStatus
+  changedById String?
+  remarks    String?
+  createdAt  DateTime  @default(now())
+
+  job ServiceJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([jobId])
+  @@map("job_status_history")
+}
+
+model JobAssignment {
+  id         String   @id @default(cuid())
+  jobId      String
+  userId     String
+  role       String   // ENGINEER | TECHNICIAN | SUPERVISOR
+  assignedAt DateTime @default(now())
+  assignedById String?
+  unassignedAt DateTime?
+  remarks    String?
+
+  job  ServiceJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  user User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([jobId])
+  @@index([userId])
+  @@map("job_assignments")
+}
+
+model SiteVisit {
+  id                     String    @id @default(cuid())
+  visitNumber            String    @unique      // TE/SV/2026-27/0001
+  jobId                  String
+  customerId             String
+  siteId                 String
+  visitDate              DateTime
+  arrivalTime            String?
+  departureTime          String?
+  engineerId             String?
+  technicianNames        String?
+  customerRepresentative String?
+  purpose                String?
+  equipmentDetails       String?
+  problemObserved        String?
+  initialObservation     String?
+  requiredAction         String?
+  materialRequired       String?
+  spareRequired          String?
+  siteCondition          String?
+  remarks                String?
+  status                 DocWorkflowStatus @default(DRAFT)
+  createdById            String?
+  updatedById            String?
+  deletedAt              DateTime?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  job       ServiceJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  customer  Customer   @relation(fields: [customerId], references: [id])
+  site      Site       @relation(fields: [siteId], references: [id])
+  engineer  User?      @relation("VisitEngineer", fields: [engineerId], references: [id])
+  moms      Mom[]
+  photos    Photo[]
+  documents Document[]
+
+  @@index([jobId])
+  @@index([visitDate])
+  @@map("site_visits")
+}
+
+// ─────────────────────────────────────────────────────────────
+// MOM
+// ─────────────────────────────────────────────────────────────
+
+model Mom {
+  id                   String    @id @default(cuid())
+  momNumber            String    @unique       // TE/MOM/2026-27/0001
+  jobId                String
+  siteVisitId          String?
+  customerId           String
+  siteId               String
+  meetingDate          DateTime
+  meetingTime          String?
+  location             String?
+  equipmentDetails     String?
+  purpose              String?
+  discussionPoints     String?
+  technicalObservations String?
+  problemsIdentified   String?
+  decisionsTaken       String?
+  requiredMaterials    String?
+  requiredSpares       String?
+  pendingPoints        String?
+  recommendations      String?
+  clientRemarks        String?
+  status               DocWorkflowStatus @default(DRAFT)
+  version              Int       @default(1)
+  lockedAt             DateTime?
+  submittedAt          DateTime?
+  sentAt               DateTime?
+  confirmedAt          DateTime?
+  createdById          String?
+  updatedById          String?
+  deletedAt            DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  job          ServiceJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  siteVisit    SiteVisit? @relation(fields: [siteVisitId], references: [id])
+  customer     Customer   @relation(fields: [customerId], references: [id])
+  site         Site       @relation(fields: [siteId], references: [id])
+  createdBy    User?      @relation("MomCreatedBy", fields: [createdById], references: [id])
+
+  participants MomParticipant[]
+  actionPoints MomActionPoint[]
+  photos       Photo[]
+  documents    Document[]
+
+  @@index([jobId])
+  @@index([status])
+  @@index([meetingDate])
+  @@map("moms")
+}
+
+model MomParticipant {
+  id          String  @id @default(cuid())
+  momId       String
+  name        String
+  designation String?
+  company     String?
+  party       ResponsibleParty @default(TULSI_ENGINEERS)
+  mobile      String?
+  email       String?
+  createdAt   DateTime @default(now())
+
+  mom Mom @relation(fields: [momId], references: [id], onDelete: Cascade)
+
+  @@index([momId])
+  @@map("mom_participants")
+}
+
+model MomActionPoint {
+  id                String            @id @default(cuid())
+  momId             String
+  sequence          Int               @default(1)
+  actionPoint       String
+  responsiblePerson String?
+  responsibleParty  ResponsibleParty  @default(TULSI_ENGINEERS)
+  responsibleCompany String?
+  dueDate           DateTime?
+  priority          Priority          @default(MEDIUM)
+  status            ActionPointStatus @default(OPEN)
+  completedAt       DateTime?
+  remarks           String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  mom            Mom         @relation(fields: [momId], references: [id], onDelete: Cascade)
+  generatedJob   ServiceJob?
+
+  @@index([momId])
+  @@index([status])
+  @@map("mom_action_points")
+}
+
+// ─────────────────────────────────────────────────────────────
+// DAILY WORK
+// ─────────────────────────────────────────────────────────────
+
+model DailyWorkReport {
+  id                 String    @id @default(cuid())
+  reportNumber       String    @unique        // TE/DWR/2026-27/0001
+  jobId              String
+  reportDate         DateTime
+  engineerId         String?
+  technicianNames    String?
+  startTime          String?
+  endTime            String?
+  workHours          Float?
+  workPerformed      String?
+  progressPercent    Int       @default(0)
+  toolsUsed          String?
+  technicalFindings  String?
+  problems           String?
+  pendingWork        String?
+  nextAction         String?
+  recommendations    String?
+  remarks            String?
+  status             DocWorkflowStatus @default(DRAFT)
+  version            Int       @default(1)
+  lockedAt           DateTime?
+  submittedAt        DateTime?
+  sentAt             DateTime?
+  confirmedAt        DateTime?
+  createdById        String?
+  updatedById        String?
+  deletedAt          DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  job       ServiceJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  engineer  User?      @relation("DailyReportEngineer", fields: [engineerId], references: [id])
+  materials WorkMaterial[]
+  spares    WorkSpare[]
+  photos    Photo[]
+  documents Document[]
+
+  @@index([jobId])
+  @@index([reportDate])
+  @@index([status])
+  @@map("daily_work_reports")
+}
+
+model WorkMaterial {
+  id           String  @id @default(cuid())
+  dailyReportId String
+  name         String
+  specification String?
+  quantity     Float   @default(1)
+  unit         String?
+  remarks      String?
+  createdAt    DateTime @default(now())
+
+  dailyReport DailyWorkReport @relation(fields: [dailyReportId], references: [id], onDelete: Cascade)
+
+  @@index([dailyReportId])
+  @@map("work_materials")
+}
+
+model WorkSpare {
+  id            String  @id @default(cuid())
+  dailyReportId String
+  name          String
+  partNumber    String?
+  make          String?
+  quantity      Float   @default(1)
+  unit          String?
+  remarks       String?
+  createdAt     DateTime @default(now())
+
+  dailyReport DailyWorkReport @relation(fields: [dailyReportId], references: [id], onDelete: Cascade)
+
+  @@index([dailyReportId])
+  @@map("work_spares")
+}
+
+// ─────────────────────────────────────────────────────────────
+// FINAL REPORT
+// ─────────────────────────────────────────────────────────────
+
+model FinalServiceReport {
+  id             String    @id @default(cuid())
+  reportNumber   String    @unique          // TE/FSR/2026-27/0001
+  jobId          String
+  customerId     String
+  siteId         String
+  workStartDate  DateTime?
+  workEndDate    DateTime?
+  engineerName   String?
+  technicianNames String?
+  workPerformed  String?
+  materialsSummary String?
+  sparesSummary  String?
+  testingDetails String?
+  observations   String?
+  pendingWork    String?
+  recommendations String?
+  finalRemarks   String?
+  completionDate DateTime?
+  status         DocWorkflowStatus @default(DRAFT)
+  version        Int       @default(1)
+  lockedAt       DateTime?
+  submittedAt    DateTime?
+  sentAt         DateTime?
+  confirmedAt    DateTime?
+  createdById    String?
+  updatedById    String?
+  deletedAt      DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  job       ServiceJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  customer  Customer   @relation(fields: [customerId], references: [id])
+  site      Site       @relation(fields: [siteId], references: [id])
+  photos    Photo[]
+  documents Document[]
+
+  @@index([jobId])
+  @@index([status])
+  @@map("final_service_reports")
+}
+
+// ─────────────────────────────────────────────────────────────
+// FILES
+// ─────────────────────────────────────────────────────────────
+
+model Photo {
+  id           String        @id @default(cuid())
+  category     PhotoCategory @default(OTHER)
+  fileName     String
+  storageKey   String                        // key in object storage / local disk
+  mimeType     String
+  sizeBytes    Int
+  width        Int?
+  height       Int?
+  description  String?
+  capturedAt   DateTime?
+  uploadedById String?
+  jobId        String?
+  siteVisitId  String?
+  momId        String?
+  dailyReportId String?
+  finalReportId String?
+  equipmentId  String?
+  deletedAt    DateTime?
+  createdAt    DateTime      @default(now())
+
+  uploadedBy  User?               @relation(fields: [uploadedById], references: [id])
+  job         ServiceJob?         @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  siteVisit   SiteVisit?          @relation(fields: [siteVisitId], references: [id], onDelete: Cascade)
+  mom         Mom?                @relation(fields: [momId], references: [id], onDelete: Cascade)
+  dailyReport DailyWorkReport?    @relation(fields: [dailyReportId], references: [id], onDelete: Cascade)
+  finalReport FinalServiceReport? @relation(fields: [finalReportId], references: [id], onDelete: Cascade)
+  equipment   Equipment?          @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+
+  @@index([jobId])
+  @@index([momId])
+  @@index([dailyReportId])
+  @@index([category])
+  @@map("photos")
+}
+
+model Document {
+  id           String   @id @default(cuid())
+  title        String?
+  fileName     String
+  storageKey   String
+  mimeType     String
+  sizeBytes    Int
+  description  String?
+  uploadedById String?
+  customerId   String?
+  siteId       String?
+  equipmentId  String?
+  jobId        String?
+  siteVisitId  String?
+  momId        String?
+  dailyReportId String?
+  finalReportId String?
+  deletedAt    DateTime?
+  createdAt    DateTime @default(now())
+
+  uploadedBy  User?               @relation(fields: [uploadedById], references: [id])
+  customer    Customer?           @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  site        Site?               @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  equipment   Equipment?          @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+  job         ServiceJob?         @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  siteVisit   SiteVisit?          @relation(fields: [siteVisitId], references: [id], onDelete: Cascade)
+  mom         Mom?                @relation(fields: [momId], references: [id], onDelete: Cascade)
+  dailyReport DailyWorkReport?    @relation(fields: [dailyReportId], references: [id], onDelete: Cascade)
+  finalReport FinalServiceReport? @relation(fields: [finalReportId], references: [id], onDelete: Cascade)
+
+  @@index([jobId])
+  @@index([customerId])
+  @@map("documents")
+}
+
+model PdfDocument {
+  id           String       @id @default(cuid())
+  docType      DocumentType
+  recordId     String                      // id of MOM / daily report / final report
+  recordNumber String
+  version      Int          @default(1)
+  fileName     String
+  storageKey   String
+  sizeBytes    Int
+  checksum     String?
+  generatedById String?
+  createdAt    DateTime     @default(now())
+
+  @@unique([docType, recordId, version])
+  @@index([recordId])
+  @@map("pdf_documents")
+}
+
+// ─────────────────────────────────────────────────────────────
+// CLIENT PORTAL / CONFIRMATION / OTP
+// ─────────────────────────────────────────────────────────────
+
+model ClientReportLink {
+  id           String       @id @default(cuid())
+  tokenHash    String       @unique
+  tokenPrefix  String       @unique        // public lookup id, safe to log
+  docType      DocumentType
+  recordId     String
+  version      Int          @default(1)
+  customerId   String
+  recipientName String?
+  recipientMobile String?
+  recipientEmail  String?
+  allowCorrection Boolean   @default(true)
+  expiresAt    DateTime
+  revokedAt    DateTime?
+  firstViewedAt DateTime?
+  lastViewedAt DateTime?
+  viewCount    Int          @default(0)
+  createdById  String?
+  createdAt    DateTime     @default(now())
+
+  confirmations ClientConfirmation[]
+
+  @@index([docType, recordId])
+  @@index([customerId])
+  @@map("client_report_links")
+}
+
+model ClientConfirmation {
+  id            String             @id @default(cuid())
+  linkId        String?
+  docType       DocumentType
+  recordId      String
+  recordNumber  String
+  version       Int                @default(1)
+  customerId    String
+  clientName    String?
+  clientMobile  String?
+  clientEmail   String?
+  status        ConfirmationStatus @default(PENDING)
+  verified      Boolean            @default(false)
+  verificationChannel OtpChannel?
+  correctionRemarks   String?
+  confirmedAt   DateTime?
+  ipAddress     String?
+  userAgent     String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  link ClientReportLink? @relation(fields: [linkId], references: [id], onDelete: SetNull)
+
+  @@index([docType, recordId])
+  @@index([customerId])
+  @@index([status])
+  @@map("client_confirmations")
+}
+
+model OtpVerification {
+  id          String     @id @default(cuid())
+  purpose     OtpPurpose
+  channel     OtpChannel @default(WHATSAPP)
+  destination String                        // mobile / email (masked when displayed)
+  codeHash    String                        // NEVER store plain OTP
+  docType     DocumentType?
+  recordId    String?
+  linkId      String?
+  attempts    Int        @default(0)
+  maxAttempts Int        @default(5)
+  resendCount Int        @default(0)
+  expiresAt   DateTime
+  verifiedAt  DateTime?
+  consumedAt  DateTime?
+  ipAddress   String?
+  createdAt   DateTime   @default(now())
+
+  @@index([purpose, recordId])
+  @@index([destination])
+  @@index([expiresAt])
+  @@map("otp_verifications")
+}
+
+// ─────────────────────────────────────────────────────────────
+// COMMUNICATION
+// ─────────────────────────────────────────────────────────────
+
+model EmailTemplate {
+  id        String   @id @default(cuid())
+  code      String   @unique          // MOM_SENT, DAILY_REPORT_SENT ...
+  name      String
+  subject   String
+  bodyHtml  String
+  bodyText  String?
+  variables Json?
+  isSystem  Boolean  @default(false)
+  status    RecordStatus @default(ACTIVE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("email_templates")
+}
+
+model WhatsappTemplate {
+  id           String   @id @default(cuid())
+  code         String   @unique
+  name         String                    // Meta-approved template name
+  language     String   @default("en")
+  bodyPreview  String?
+  variables    Json?
+  isSystem     Boolean  @default(false)
+  status       RecordStatus @default(ACTIVE)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("whatsapp_templates")
+}
+
+model EmailLog {
+  id           String        @id @default(cuid())
+  templateCode String?
+  toEmail      String
+  ccEmail      String?
+  bccEmail     String?
+  subject      String
+  bodyPreview  String?
+  docType      DocumentType?
+  recordId     String?
+  recordNumber String?
+  customerId   String?
+  status       ChannelStatus @default(QUEUED)
+  providerId   String?
+  errorMessage String?
+  attachments  Json?
+  sentById     String?
+  sentAt       DateTime?
+  createdAt    DateTime      @default(now())
+
+  @@index([recordId])
+  @@index([customerId])
+  @@index([status])
+  @@map("email_logs")
+}
+
+model WhatsappLog {
+  id           String        @id @default(cuid())
+  templateCode String?
+  templateName String?
+  toNumber     String
+  payload      Json?
+  bodyPreview  String?
+  docType      DocumentType?
+  recordId     String?
+  recordNumber String?
+  customerId   String?
+  status       ChannelStatus @default(QUEUED)
+  providerMessageId String?
+  errorMessage String?
+  sentById     String?
+  sentAt       DateTime?
+  createdAt    DateTime      @default(now())
+
+  @@index([recordId])
+  @@index([customerId])
+  @@index([status])
+  @@map("whatsapp_logs")
+}
+
+model Notification {
+  id         String           @id @default(cuid())
+  userId     String
+  type       NotificationType
+  title      String
+  message    String
+  link       String?
+  recordId   String?
+  readAt     DateTime?
+  createdAt  DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+  @@map("notifications")
+}
+
+// ─────────────────────────────────────────────────────────────
+// SYSTEM
+// ─────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id          String      @id @default(cuid())
+  userId      String?
+  userName    String?
+  action      AuditAction
+  module      String
+  recordId    String?
+  recordLabel String?
+  description String?
+  oldValue    Json?
+  newValue    Json?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime    @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([module])
+  @@index([createdAt])
+  @@index([recordId])
+  @@map("audit_logs")
+}
+
+model SystemSetting {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       Json
+  group       String   @default("general")
+  label       String?
+  description String?
+  isSecret    Boolean  @default(false)
+  updatedById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([group])
+  @@map("system_settings")
+}
+
+model NumberSequence {
+  id           String   @id @default(cuid())
+  key          String                       // JOB, MOM, DWR, FSR, SV, CUST, SITE, EQP
+  fiscalYear   String                       // 2026-27  ("-" for non-fiscal)
+  prefix       String
+  lastNumber   Int      @default(0)
+  padding      Int      @default(4)
+  updatedAt    DateTime @updatedAt
+
+  @@unique([key, fiscalYear])
+  @@map("number_sequences")
+}
