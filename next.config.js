@@ -21,9 +21,8 @@ if (process.platform === "win32") {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Constrain file-tracing scan to the project directory (avoids scanning
-  // parent user-profile directories on Windows which contain EPERM junctions).
-  outputFileTracingRoot: path.resolve(__dirname),
+  // Windows system aliases can prevent Next 14's tracer from completing.
+  outputFileTracing: process.platform !== "win32",
   reactStrictMode: true,
   poweredByHeader: false,
   productionBrowserSourceMaps: false,
@@ -34,16 +33,17 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  // Exclude Windows system paths from output file tracing.
-  outputFileTracingExcludes: {
-    "*": [
-      "../../Users/**",
-      "../../../Users/**",
-      "**/AppData/**",
-      "**/Application Data/**",
-    ],
-  },
   experimental: {
+    // Keep output tracing inside the project and away from Windows junctions.
+    outputFileTracingRoot: path.resolve(__dirname),
+    outputFileTracingExcludes: {
+      "*": [
+        "../../Users/**",
+        "../../../Users/**",
+        "**/AppData/**",
+        "**/Application Data/**",
+      ],
+    },
     serverComponentsExternalPackages: [
       "@prisma/client",
       "prisma",
