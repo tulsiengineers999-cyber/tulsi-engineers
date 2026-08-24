@@ -1,123 +1,185 @@
-# 🚀 Deployment Guide for Vercel
+# 🚀 Deployment Guide — Tulsi Engineers on Vercel
 
 ## Prerequisites
-- Git repository with your code
-- Vercel account (free tier is sufficient)
-- PostgreSQL database (Neon, Supabase, or Vercel Postgres)
+- Git repository pushed to GitHub / GitLab / Bitbucket
+- [Vercel account](https://vercel.com) (free tier is sufficient)
+- A hosted **PostgreSQL** database (see Step 1)
+- An **S3-compatible** file storage bucket (see Step 2)
 
-## Step 1: Database Setup
+---
 
-### Option A: Neon (Recommended - Free)
-1. Go to [neon.tech](https://neon.tech)
-2. Create account → New Project
-3. Database name: `tulsi_engineers`
-4. Copy connection string (starts with `postgresql://`)
+## Step 1: PostgreSQL Database Setup
 
-### Option B: Supabase
-1. Go to [supabase.com](https://supabase.com) 
-2. Create account → New Project
-3. Go to Settings → Database → Connection string
-4. Copy the connection string
+> **Vercel's filesystem is ephemeral — you MUST use a hosted database.**
 
-### Option C: Vercel Postgres
-1. In Vercel dashboard → Storage → Create Database
-2. Choose PostgreSQL
-3. Copy the connection string
+### Option A: Neon (Recommended — Free)
+1. Go to [neon.tech](https://neon.tech) → Create account → **New Project**
+2. Database name: `tulsi_engineers`
+3. Click **Connect** → copy the connection string
+   Format: `postgresql://user:password@ep-xxx.us-east-1.aws.neon.tech/tulsi_engineers?sslmode=require`
 
-## Step 2: Deploy to Vercel
+### Option B: Supabase (Free)
+1. Go to [supabase.com](https://supabase.com) → New Project
+2. Settings → Database → **Connection string** (URI tab)
 
-### From Git Repository:
-1. Push your code to GitHub/GitLab/Bitbucket
-2. Go to [vercel.com/new](https://vercel.com/new)
-3. Import your repository
-4. Configure environment variables (see below)
-5. Deploy!
+### Option C: Vercel Postgres (Paid)
+1. Vercel Dashboard → Storage → Create → PostgreSQL
+2. The `DATABASE_URL` will be added to your project automatically
 
-### Environment Variables to Add in Vercel:
-```env
-DATABASE_URL=postgresql://your-connection-string
-AUTH_SECRET=oJ4MB7Dty-Nlp-oI9KrilaWNXIwRc7ZqWT_zlzM4Mmo
-OTP_PEPPER=AMaQI8kqvQgQGg4JJKN2qGbELQcGSZhs
+---
+
+## Step 2: S3-Compatible File Storage Setup
+
+> **⚠️ Uploaded files (photos, documents) are permanently lost on Vercel if you use LOCAL storage.**
+> You MUST use an S3-compatible service.
+
+### Option A: Cloudflare R2 (Recommended — Free egress)
+1. [dash.cloudflare.com](https://dash.cloudflare.com) → R2 → Create bucket: `tulsi-engineers`
+2. R2 → Manage R2 API Tokens → Create Token (Object Read & Write)
+3. Note: Account ID, Access Key ID, Secret Access Key
+4. Endpoint: `https://<ACCOUNT_ID>.r2.cloudflarestorage.com`
+
+### Option B: AWS S3
+1. Create bucket in AWS Console (e.g., `tulsi-engineers-prod`)
+2. Create IAM user → Generate Access Key ID and Secret
+
+### Option C: Supabase Storage (S3-compatible)
+1. Supabase Dashboard → Storage → Create bucket: `tulsi-engineers`
+2. Storage → Settings → S3 Connection → copy credentials
+
+---
+
+## Step 3: Deploy to Vercel
+
+1. Push your code to GitHub
+2. Go to [vercel.com/new](https://vercel.com/new) → Import repository
+3. Framework Preset: **Next.js** (auto-detected)
+4. Add environment variables (see Step 4) → Click **Deploy**
+
+The build command (`npm run vercel-build`) will automatically:
+- Generate the Prisma client
+- Apply all database migrations (`prisma migrate deploy`)
+- Build the Next.js app
+
+---
+
+## Step 4: Environment Variables
+
+Add ALL of the following in **Vercel → Project → Settings → Environment Variables**:
+
+### Required — Database
+```
+DATABASE_URL=postgresql://user:password@host/tulsi_engineers?sslmode=require
+```
+
+### Required — App
+```
+APP_NAME=TULSI ENGINEERS
 APP_URL=https://your-project-name.vercel.app
 NODE_ENV=production
+AUTH_SECRET=<generate a strong random string>
 SESSION_TTL_HOURS=12
-STORAGE_DRIVER=LOCAL
-LOCAL_STORAGE_PATH=./storage
-MAIL_DRIVER=LOG
-WHATSAPP_DRIVER=LOG
-MAIL_FROM_NAME=TULSI ENGINEERS
-MAIL_FROM_EMAIL=service@tulsiengineers.com
-WHATSAPP_DEFAULT_LANGUAGE=en
-CLIENT_LINK_TTL_DAYS=30
-PDF_DRIVER=AUTO
+OTP_PEPPER=<generate a strong random string>
+```
+
+### Required — Storage (S3)
+```
+STORAGE_DRIVER=S3
+S3_ENDPOINT=https://<account-id>.r2.cloudflarestorage.com
+S3_REGION=auto
+S3_BUCKET=tulsi-engineers
+S3_ACCESS_KEY_ID=your-access-key-id
+S3_SECRET_ACCESS_KEY=your-secret-access-key
 MAX_UPLOAD_MB=15
 ```
 
-## Step 3: Post-Deployment
-
-### Update APP_URL:
-1. After first deployment, copy your Vercel URL
-2. Update the `APP_URL` environment variable
-3. Redeploy (automatic if connected to Git)
-
-### Test Login:
-Use these demo credentials:
-- Username: `admin`
-- Password: `Tulsi@2026`
-
-## Step 4: Custom Domain (Optional)
-
-1. In Vercel dashboard → Project → Domains
-2. Add your custom domain
-3. Update DNS records as instructed
-4. Update `APP_URL` environment variable
-
-## Troubleshooting
-
-### Build Failures:
-- Check build logs in Vercel dashboard
-- Ensure all environment variables are set
-- Verify database connection string
-
-### Database Issues:
-- Confirm PostgreSQL connection string is correct
-- Check database permissions
-- Verify the database is accessible from Vercel's IP ranges
-
-### Runtime Errors:
-- Check function logs in Vercel dashboard
-- Verify environment variables in production
-- Check for missing dependencies
-
-## Production Upgrades
-
-### Email Configuration:
-```env
+### Optional — Email (defaults to LOG / no emails sent)
+```
 MAIL_DRIVER=SMTP
+MAIL_FROM_NAME=TULSI ENGINEERS
+MAIL_FROM_EMAIL=service@yourdomain.com
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
-SMTP_USER=your-email@gmail.com
+SMTP_SECURE=false
+SMTP_USER=your@gmail.com
 SMTP_PASSWORD=your-app-password
 ```
 
-### File Storage (S3):
-```env
-STORAGE_DRIVER=S3
-S3_REGION=us-east-1
-S3_BUCKET=your-bucket-name
-S3_ACCESS_KEY_ID=your-key
-S3_SECRET_ACCESS_KEY=your-secret
+### Optional — WhatsApp (defaults to LOG / no messages sent)
 ```
-
-### WhatsApp Integration:
-```env
 WHATSAPP_DRIVER=CLOUD_API
+WHATSAPP_API_VERSION=v21.0
 WHATSAPP_PHONE_NUMBER_ID=your-phone-id
+WHATSAPP_BUSINESS_ACCOUNT_ID=your-account-id
 WHATSAPP_ACCESS_TOKEN=your-token
+WHATSAPP_DEFAULT_LANGUAGE=en
 ```
 
-## Support
+### Optional — Other
+```
+CLIENT_LINK_TTL_DAYS=30
+PDF_DRIVER=AUTO
+```
 
-- Vercel Documentation: [vercel.com/docs](https://vercel.com/docs)
-- Neon Documentation: [neon.tech/docs](https://neon.tech/docs)
-- Next.js Deployment: [nextjs.org/docs/deployment](https://nextjs.org/docs/deployment)
+---
+
+## Step 5: First-Time Database Seed (One-Time Only)
+
+The build automatically runs `prisma migrate deploy` to create all tables. However, it does **not** seed the admin user. Run this **once** locally pointing at your production database:
+
+```bash
+DATABASE_URL="postgresql://..." npm run db:seed
+```
+
+Default login after seeding:
+- **Username:** `admin`
+- **Password:** `Tulsi@2026`
+
+---
+
+## Step 6: Update APP_URL After First Deploy
+
+1. Copy your Vercel URL (e.g., `https://tulsi-engineers.vercel.app`)
+2. Update `APP_URL` in Vercel → Environment Variables
+3. Redeploy (Vercel → Deployments → Redeploy)
+
+---
+
+## Step 7: Custom Domain (Optional)
+
+1. Vercel Dashboard → Project → Domains → Add Domain
+2. Follow DNS configuration instructions
+3. Update `APP_URL` to your custom domain
+
+---
+
+## Troubleshooting
+
+### Build Fails — Database errors
+- Verify `DATABASE_URL` is a valid PostgreSQL URL (not SQLite `file:./dev.db`)
+
+### Files Not Saving / Photos Lost After Redeploy
+- Set `STORAGE_DRIVER=S3` — LOCAL storage doesn't persist on Vercel
+
+### PDF Generated as HTML
+- Install `@sparticuz/chromium` for real PDFs, or set `PDF_DRIVER=HTML`
+
+---
+
+## Production Checklist
+
+- [ ] PostgreSQL database created and `DATABASE_URL` set
+- [ ] S3 bucket created and all S3 env vars set (`STORAGE_DRIVER=S3`)
+- [ ] Strong random `AUTH_SECRET` and `OTP_PEPPER` set
+- [ ] `APP_URL` updated to real Vercel URL
+- [ ] Database seeded once with `npm run db:seed`
+- [ ] Login tested with `admin` / `Tulsi@2026`
+- [ ] Custom domain configured (optional)
+
+---
+
+## References
+- [Vercel Docs](https://vercel.com/docs)
+- [Neon Serverless Postgres](https://neon.tech/docs)
+- [Next.js Deployment](https://nextjs.org/docs/deployment)
+- [Cloudflare R2](https://developers.cloudflare.com/r2/)
