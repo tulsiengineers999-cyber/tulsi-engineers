@@ -53,10 +53,16 @@ export const env = {
 
   whatsapp: {
     driver: str("WHATSAPP_DRIVER", "LOG") as "LOG" | "CLOUD_API",
+    provider: str("WHATSAPP_PROVIDER", "META") as "META" | "WAPIO",
     apiVersion: str("WHATSAPP_API_VERSION", "v21.0"),
     phoneNumberId: str("WHATSAPP_PHONE_NUMBER_ID"),
     businessAccountId: str("WHATSAPP_BUSINESS_ACCOUNT_ID"),
     accessToken: str("WHATSAPP_ACCESS_TOKEN"),
+    wapio: {
+      endpoint: str("WAPIO_ENDPOINT", "https://app.wapio.com/api/v1/send"),
+      apiKey: str("WAPIO_API_KEY"),
+      instanceName: str("WAPIO_INSTANCE_NAME"),
+    },
     defaultLanguage: str("WHATSAPP_DEFAULT_LANGUAGE", "en"),
   },
 

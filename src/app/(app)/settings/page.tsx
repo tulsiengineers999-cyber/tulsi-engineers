@@ -20,7 +20,7 @@ interface SettingsPayload {
 
 interface Integrations {
   email: { driver: string; configured: boolean; fromEmail: string; host: string };
-  whatsapp: { driver: string; configured: boolean; phoneNumberIdMasked: string; apiVersion: string };
+  whatsapp: { driver: string; provider: string; configured: boolean; phoneNumberIdMasked: string; instanceName: string; apiVersion: string };
   storage: { driver: string; bucket: string };
   pdf: { driver: string; chromiumAvailable: boolean };
   otp: { length: number; ttlMinutes: number; maxAttempts: number; maxResends: number };
@@ -46,7 +46,7 @@ const REQUIRED_ENV = [
   { name: "OTP_PEPPER", note: "Long random string used to hash one-time passwords" },
   { name: "STORAGE_DRIVER / S3_*", note: "Object storage for photos, documents and PDFs" },
   { name: "MAIL_DRIVER / SMTP_*", note: "Set MAIL_DRIVER=SMTP with your provider's credentials" },
-  { name: "WHATSAPP_DRIVER / WHATSAPP_*", note: "Set WHATSAPP_DRIVER=CLOUD_API with the Meta credentials" },
+  { name: "WHATSAPP_DRIVER / META_* or WAPIO_*", note: "Set CLOUD_API with Meta or Wapio credentials" },
   { name: "CHROMIUM_PATH", note: "Only when the host does not ship a Chromium binary" },
 ];
 
@@ -522,12 +522,15 @@ export default function SettingsPage() {
                 warning={!integrations.email.configured ? "Messages are recorded in Email History but not transmitted." : undefined}
               />
               <StatusTile
-                title="WhatsApp Business Cloud API"
+                title={`WhatsApp (${integrations.whatsapp.provider})`}
                 ok={integrations.whatsapp.configured}
                 lines={[
                   `Driver: ${integrations.whatsapp.driver}`,
+                  `Provider: ${integrations.whatsapp.provider}`,
                   `API version: ${integrations.whatsapp.apiVersion}`,
-                  `Phone number ID: ${integrations.whatsapp.phoneNumberIdMasked || "not set"}`,
+                  integrations.whatsapp.provider === "WAPIO"
+                    ? `Instance: ${integrations.whatsapp.instanceName || "not set"}`
+                    : `Phone number ID: ${integrations.whatsapp.phoneNumberIdMasked || "not set"}`,
                 ]}
                 warning={!integrations.whatsapp.configured ? "Messages are recorded in WhatsApp History but not transmitted." : undefined}
               />

@@ -30,11 +30,11 @@ export function normaliseWhatsappNumber(raw: string, defaultCountryCode = "91"):
 }
 
 export function whatsappConfigured(): boolean {
-  return (
-    env.whatsapp.driver === "CLOUD_API" &&
-    Boolean(env.whatsapp.phoneNumberId) &&
-    Boolean(env.whatsapp.accessToken)
-  );
+  if (env.whatsapp.driver !== "CLOUD_API") return false;
+  if (env.whatsapp.provider === "WAPIO") {
+    return Boolean(env.whatsapp.wapio.apiKey && env.whatsapp.wapio.instanceName);
+  }
+  return Boolean(env.whatsapp.phoneNumberId && env.whatsapp.accessToken);
 }
 
 /**
@@ -110,17 +110,35 @@ export async function sendWhatsappTemplate(input: SendWhatsappInput) {
   }
 
   try {
-    const res = await fetch(
-      `https://graph.facebook.com/${env.whatsapp.apiVersion}/${env.whatsapp.phoneNumberId}/messages`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${env.whatsapp.accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      },
-    );
+    const request =
+      env.whatsapp.provider === "WAPIO"
+        ? {
+            url: env.whatsapp.wapio.endpoint,
+            headers: {
+              Authorization: `Bearer ${env.whatsapp.wapio.apiKey}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              instanceName: env.whatsapp.wapio.instanceName,
+              number: to,
+              type: "text",
+              message: preview,
+            }),
+          }
+        : {
+            url: `https://graph.facebook.com/${env.whatsapp.apiVersion}/${env.whatsapp.phoneNumberId}/messages`,
+            headers: {
+              Authorization: `Bearer ${env.whatsapp.accessToken}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          };
+
+    const res = await fetch(request.url, {
+      method: "POST",
+      headers: request.headers,
+      body: request.body,
+    });
     const json = (await res.json()) as {
       messages?: { id: string }[];
       error?: { message?: string; error_data?: { details?: string } };

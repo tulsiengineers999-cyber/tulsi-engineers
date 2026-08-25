@@ -126,6 +126,25 @@ with easier onboarding. To switch, replace the `fetch` call in
 the rest of the application, including logging and OTP, is unchanged, because
 everything goes through `sendWhatsappTemplate()`.
 
+### Wapio Developer API
+
+Wapio can be used instead of Meta Cloud API when the connected WhatsApp
+instance is managed by Wapio. Create a developer API key in Wapio → Settings →
+Developers, then configure the local or hosting environment with:
+
+```
+WHATSAPP_DRIVER="CLOUD_API"
+WHATSAPP_PROVIDER="WAPIO"
+WAPIO_ENDPOINT="https://app.wapio.com/api/v1/send"
+WAPIO_INSTANCE_NAME="Tulsi Engineers"
+WAPIO_API_KEY="…"
+```
+
+The instance name must exactly match the connected Wapio WhatsApp connection.
+The Wapio key is sent only as a server-side Bearer credential. Never commit it
+to Git or place it in a client component. Wapio sends a text message containing
+the rendered template preview through `POST /api/v1/send`.
+
 ---
 
 ## One-time passwords

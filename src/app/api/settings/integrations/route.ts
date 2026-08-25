@@ -25,8 +25,10 @@ export async function GET() {
       },
       whatsapp: {
         driver: env.whatsapp.driver,
+        provider: env.whatsapp.provider,
         configured: whatsappConfigured(),
         phoneNumberIdMasked: maskTail(env.whatsapp.phoneNumberId),
+        instanceName: env.whatsapp.provider === "WAPIO" ? env.whatsapp.wapio.instanceName : "",
         apiVersion: env.whatsapp.apiVersion,
       },
       storage: {
