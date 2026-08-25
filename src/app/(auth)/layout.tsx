@@ -1,4 +1,5 @@
 import { getCompany, DEFAULT_COMPANY } from "@/lib/settings";
+import Image from "next/image";
 
 // Company branding is read from the database at request time, so these pages
 // must never be prerendered at build time (the database is not reachable then).
@@ -21,9 +22,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
           }}
         />
         <div className="relative">
-          <div className="mb-2 inline-grid h-12 w-12 place-items-center rounded-lg bg-[var(--te-accent)] text-lg font-black">
-            TE
-          </div>
+          <Image src={company.logoUrl || "/logo.jpeg"} alt="" width={64} height={64} className="mb-2 h-16 w-16 rounded-lg bg-white object-contain p-1" priority />
           <h1 className="mt-4 text-3xl font-black tracking-tight">{company.name}</h1>
           <p className="mt-3 max-w-md text-sm leading-relaxed text-slate-300">{company.tagline}</p>
         </div>
@@ -57,9 +56,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
       <div className="flex items-center justify-center bg-white px-5 py-10 sm:px-10">
         <div className="w-full max-w-sm">
           <div className="mb-8 lg:hidden">
-            <div className="mb-3 inline-grid h-11 w-11 place-items-center rounded-lg bg-[var(--te-accent)] text-base font-black text-white">
-              TE
-            </div>
+            <Image src={company.logoUrl || "/logo.jpeg"} alt="" width={56} height={56} className="mb-3 h-14 w-14 rounded-lg bg-white object-contain p-1" priority />
             <h1 className="text-xl font-black tracking-tight text-slate-900">{company.name}</h1>
             <p className="mt-1 text-xs leading-relaxed text-slate-500">{company.tagline}</p>
           </div>

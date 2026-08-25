@@ -14,7 +14,22 @@ export async function generateMetadata(): Promise<Metadata> {
     title: { default: `${name} — Service Management`, template: `%s | ${name}` },
     description: company?.tagline ?? "Service & Site Work Management System",
     robots: { index: false, follow: false },
-    icons: { icon: "/favicon.ico" },
+    icons: {
+      icon: "/logo.jpeg",
+      apple: "/logo.jpeg",
+    },
+    openGraph: {
+      title: `${name} — Service Management`,
+      description: company?.tagline ?? "Service & Site Work Management System",
+      type: "website",
+      images: [{ url: "/logo.jpeg", alt: name }],
+    },
+    twitter: {
+      card: "summary",
+      title: `${name} — Service Management`,
+      description: company?.tagline ?? "Service & Site Work Management System",
+      images: ["/logo.jpeg"],
+    },
   };
 }
 

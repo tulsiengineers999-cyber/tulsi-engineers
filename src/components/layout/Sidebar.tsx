@@ -27,13 +27,7 @@ export function Sidebar({
   const body = (
     <div className="flex h-full flex-col bg-[var(--te-sidebar)] text-slate-200">
       <div className="flex h-14 shrink-0 items-center gap-2.5 border-b border-white/10 px-4">
-        {logoUrl ? (
-          <Image src={logoUrl} alt="" width={32} height={32} className="h-8 w-8 rounded bg-white object-contain p-0.5" unoptimized />
-        ) : (
-          <span className="grid h-8 w-8 shrink-0 place-items-center rounded bg-[var(--te-accent)] text-sm font-black text-white">
-            TE
-          </span>
-        )}
+        <Image src={logoUrl || "/logo.jpeg"} alt="" width={32} height={32} className="h-8 w-8 rounded bg-white object-contain p-0.5" unoptimized />
         <div className="min-w-0 flex-1">
           <p className="truncate text-[13px] leading-tight font-bold tracking-wide text-white">{companyName}</p>
           <p className="text-[10px] tracking-wider text-slate-400 uppercase">Service Management</p>
