@@ -10,25 +10,28 @@ const inter = Inter({ variable: "--font-inter", subsets: ["latin"], display: "sw
 export async function generateMetadata(): Promise<Metadata> {
   const company = await getCompany().catch(() => null);
   const name = company?.name ?? "TULSI ENGINEERS";
+  const logo = "/logo.jpeg?v=2";
   return {
+    metadataBase: new URL(process.env.APP_URL ?? "http://localhost:3000"),
     title: { default: `${name} — Service Management`, template: `%s | ${name}` },
     description: company?.tagline ?? "Service & Site Work Management System",
     robots: { index: false, follow: false },
     icons: {
-      icon: "/logo.jpeg",
-      apple: "/logo.jpeg",
+      icon: [{ url: logo, type: "image/jpeg" }],
+      shortcut: [logo],
+      apple: [{ url: logo, type: "image/jpeg" }],
     },
     openGraph: {
       title: `${name} — Service Management`,
       description: company?.tagline ?? "Service & Site Work Management System",
       type: "website",
-      images: [{ url: "/logo.jpeg", alt: name }],
+      images: [{ url: logo, alt: name }],
     },
     twitter: {
       card: "summary",
       title: `${name} — Service Management`,
       description: company?.tagline ?? "Service & Site Work Management System",
-      images: ["/logo.jpeg"],
+      images: [logo],
     },
   };
 }
