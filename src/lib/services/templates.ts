@@ -242,7 +242,7 @@ export const WHATSAPP_TEMPLATES: WhatsappTemplateSeed[] = [
   },
   {
     code: "OTP",
-    name: "te_otp_verification",
+    name: "site_vite_confirmation_code",
     language: "en",
     bodyPreview: "{{1}} is your TULSI ENGINEERS verification code. It expires in {{2}} minutes.",
     variables: ["otp_code", "expiry_minutes"],

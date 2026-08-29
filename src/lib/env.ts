@@ -59,7 +59,7 @@ export const env = {
     businessAccountId: str("WHATSAPP_BUSINESS_ACCOUNT_ID"),
     accessToken: str("WHATSAPP_ACCESS_TOKEN"),
     wapio: {
-      endpoint: str("WAPIO_ENDPOINT", "https://app.wapio.com/api/v1/send"),
+      endpoint: str("WAPIO_ENDPOINT", "https://api.wapio.io/api/send-message"),
       apiKey: str("WAPIO_API_KEY"),
       instanceName: str("WAPIO_INSTANCE_NAME"),
     },

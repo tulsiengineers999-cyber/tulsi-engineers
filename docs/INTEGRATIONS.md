@@ -87,9 +87,9 @@ what is recorded at Admin → Templates → WhatsApp templates.
 | `te_final_service_report` | Dear {{1}}, Service work at {{2}} is complete. Final Service Report {{3}}: {{4}} — TULSI ENGINEERS |
 | `te_client_confirmation` | Dear {{1}}, please confirm {{2}} {{3}}: {{4}} — TULSI ENGINEERS |
 | `te_report_resend` | Dear {{1}}, resending {{2}} {{3}}: {{4}} — TULSI ENGINEERS |
-| `te_otp_verification` | {{1}} is your TULSI ENGINEERS verification code. It expires in {{2}} minutes. |
+| `site_vite_confirmation_code` | {{1}} is your TULSI ENGINEERS verification code. It expires in {{2}} minutes. |
 
-For `te_otp_verification`, choose category **Authentication**. Meta applies
+For `site_vite_confirmation_code`, choose category **Authentication**. Meta applies
 stricter rules to authentication templates and will reject an OTP body submitted
 as Utility.
 
@@ -135,15 +135,15 @@ Developers, then configure the local or hosting environment with:
 ```
 WHATSAPP_DRIVER="CLOUD_API"
 WHATSAPP_PROVIDER="WAPIO"
-WAPIO_ENDPOINT="https://app.wapio.com/api/v1/send"
+WAPIO_ENDPOINT="https://api.wapio.io/api/send-message"
 WAPIO_INSTANCE_NAME="Tulsi Engineers"
-WAPIO_API_KEY="…"
+WAPIO_API_KEY="sk_live_…"
 ```
 
-The instance name must exactly match the connected Wapio WhatsApp connection.
 The Wapio key is sent only as a server-side Bearer credential. Never commit it
 to Git or place it in a client component. Wapio sends a text message containing
-the rendered template preview through `POST /api/v1/send`.
+the rendered template preview through `POST /api/send-message` with `to` and
+`text` fields. The API key identifies the connected WAPIO session.
 
 ---
 

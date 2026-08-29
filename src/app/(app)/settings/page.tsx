@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/primitives";
 import { Tabs } from "@/components/ui/Tabs";
 import { api, ApiError } from "@/lib/client-api";
+import { whatsappNumberError } from "@/lib/validation/whatsapp";
 import { useToast } from "@/components/ui/Toast";
 import { DEFAULT_COMPANY, DEFAULT_THEME, type CompanyProfile } from "@/lib/company";
 import { fiscalYearLabel } from "./fiscalYear";
@@ -20,7 +21,7 @@ interface SettingsPayload {
 
 interface Integrations {
   email: { driver: string; configured: boolean; fromEmail: string; host: string };
-  whatsapp: { driver: string; provider: string; configured: boolean; phoneNumberIdMasked: string; instanceName: string; apiVersion: string };
+  whatsapp: { driver: string; provider: string; configured: boolean; configurationError: string | null; endpoint: string; lastFailure: string | null; phoneNumberIdMasked: string; instanceName: string; apiVersion: string };
   storage: { driver: string; bucket: string };
   pdf: { driver: string; chromiumAvailable: boolean };
   otp: { length: number; ttlMinutes: number; maxAttempts: number; maxResends: number };
@@ -68,6 +69,7 @@ export default function SettingsPage() {
   const [testEmail, setTestEmail] = useState("");
   const [testWhatsapp, setTestWhatsapp] = useState("");
   const [testing, setTesting] = useState<string | null>(null);
+  const [testWhatsappError, setTestWhatsappError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -120,6 +122,14 @@ export default function SettingsPage() {
       toast.warning("Enter a destination first");
       return;
     }
+    if (kind === "whatsapp") {
+      const numberError = whatsappNumberError(to);
+      if (numberError) {
+        setTestWhatsappError(numberError);
+        return;
+      }
+      setTestWhatsappError(null);
+    }
     setTesting(kind);
     try {
       const res = await api.post<{ delivered?: boolean; simulated?: boolean; error?: string }>(
@@ -134,8 +144,12 @@ export default function SettingsPage() {
             ? "MAIL_DRIVER is set to LOG. Set it to SMTP with valid credentials to send for real."
             : "WHATSAPP_DRIVER is set to LOG. Set it to CLOUD_API with valid credentials to send for real.",
         );
-      else toast.error("Test failed", res.error ?? "The message could not be sent.");
+      else {
+        console.error("[settings] WhatsApp test failed", { destination: to, error: res.error });
+        toast.error("Test failed", res.error ?? "The message could not be sent.");
+      }
     } catch (err) {
+      console.error("[settings] WhatsApp test request failed", err);
       toast.error("Test failed", err instanceof ApiError ? err.message : undefined);
     } finally {
       setTesting(null);
@@ -527,12 +541,13 @@ export default function SettingsPage() {
                 lines={[
                   `Driver: ${integrations.whatsapp.driver}`,
                   `Provider: ${integrations.whatsapp.provider}`,
+                  `Endpoint: ${integrations.whatsapp.endpoint}`,
                   `API version: ${integrations.whatsapp.apiVersion}`,
                   integrations.whatsapp.provider === "WAPIO"
                     ? `Instance: ${integrations.whatsapp.instanceName || "not set"}`
                     : `Phone number ID: ${integrations.whatsapp.phoneNumberIdMasked || "not set"}`,
                 ]}
-                warning={!integrations.whatsapp.configured ? "Messages are recorded in WhatsApp History but not transmitted." : undefined}
+                warning={integrations.whatsapp.configurationError ?? integrations.whatsapp.lastFailure ?? (!integrations.whatsapp.configured ? "Messages are recorded in WhatsApp History but not transmitted." : undefined)}
               />
               <StatusTile
                 title="File storage"
@@ -575,7 +590,19 @@ export default function SettingsPage() {
               <div>
                 <Field label="Test WhatsApp number">
                   <div className="flex gap-2">
-                    <Input value={testWhatsapp} onChange={(e) => setTestWhatsapp(e.target.value)} placeholder="98250 00000" inputMode="tel" />
+                    <Input
+                      value={testWhatsapp}
+                      onChange={(e) => {
+                        setTestWhatsapp(e.target.value);
+                        setTestWhatsappError(whatsappNumberError(e.target.value));
+                      }}
+                      placeholder="98250 00000"
+                      inputMode="tel"
+                      maxLength={16}
+                      aria-invalid={Boolean(testWhatsappError)}
+                    />
+                    {testWhatsappError && <p className="mt-1 text-xs text-red-600">{testWhatsappError}</p>}
+                    {!testWhatsappError && testWhatsapp && <p className="mt-1 text-xs text-slate-500">Valid WhatsApp number</p>}
                     <Button variant="outline" onClick={() => sendTest("whatsapp")} loading={testing === "whatsapp"}>
                       <MessageSquare className="h-4 w-4" /> Send
                     </Button>

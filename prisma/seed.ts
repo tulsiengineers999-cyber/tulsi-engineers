@@ -110,7 +110,13 @@ async function seedTemplates() {
     await prisma.whatsappTemplate.upsert({
       where: { code: t.code },
       create: { code: t.code, name: t.name, language: t.language, bodyPreview: t.bodyPreview, variables: t.variables, isSystem: true },
-      update: { bodyPreview: t.bodyPreview, variables: t.variables, isSystem: true },
+      update: {
+        name: t.name,
+        language: t.language,
+        bodyPreview: t.bodyPreview,
+        variables: t.variables,
+        isSystem: true,
+      },
     });
   }
   log(`templates: ${EMAIL_TEMPLATES.length} email, ${WHATSAPP_TEMPLATES.length} whatsapp`);

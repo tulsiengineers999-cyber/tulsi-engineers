@@ -113,7 +113,7 @@ export async function requestOtp(input: RequestOtpInput) {
       customerId: input.customerId,
     });
   } else {
-    await sendWhatsappTemplate({
+    const delivery = await sendWhatsappTemplate({
       templateCode: "OTP",
       to: input.destination,
       bodyParams: [code, String(env.otp.ttlMinutes)],
@@ -122,6 +122,10 @@ export async function requestOtp(input: RequestOtpInput) {
       recordNumber: input.recordNumber,
       customerId: input.customerId,
     });
+
+    if (!delivery.delivered && !delivery.simulated) {
+      throw Errors.validation(delivery.error ?? "The WhatsApp verification code could not be sent. Please try again.");
+    }
   }
 
   await audit({

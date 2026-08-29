@@ -470,11 +470,15 @@ export async function generatePdf(docType: DocumentType, id: string, generatedBy
     where: { docType_recordId_version: { docType, recordId: id, version: doc.version } },
   });
   if (existing) {
+    if (existing.fileName.endsWith(".html")) {
+      await prisma.pdfDocument.delete({ where: { id: existing.id } }).catch(() => undefined);
+    } else {
     try {
       const buffer = await getFile(existing.storageKey);
       return { pdf: existing, buffer, regenerated: false, fallback: existing.fileName.endsWith(".html") };
     } catch {
       await prisma.pdfDocument.delete({ where: { id: existing.id } }).catch(() => undefined);
+    }
     }
   }
 

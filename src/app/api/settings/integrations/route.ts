@@ -1,8 +1,9 @@
 import { ok, fail } from "@/lib/http";
 import { requirePermission } from "@/lib/guard";
+import { prisma } from "@/lib/prisma";
 import { env } from "@/lib/env";
 import { emailConfigured } from "@/lib/services/email";
-import { whatsappConfigured } from "@/lib/services/whatsapp";
+import { whatsappConfigured, whatsappConfigurationError } from "@/lib/services/whatsapp";
 
 /** Masks an id/token down to its last 4 characters — never exposes the full value. */
 function maskTail(value: string): string {
@@ -15,6 +16,11 @@ export async function GET() {
     await requirePermission("settings.view");
 
     const emailReady = await emailConfigured();
+    const latestWhatsappFailure = await prisma.whatsappLog.findFirst({
+      where: { status: "FAILED" },
+      orderBy: { createdAt: "desc" },
+      select: { errorMessage: true, createdAt: true },
+    });
 
     return ok({
       email: {
@@ -27,6 +33,9 @@ export async function GET() {
         driver: env.whatsapp.driver,
         provider: env.whatsapp.provider,
         configured: whatsappConfigured(),
+        configurationError: whatsappConfigurationError(),
+        endpoint: env.whatsapp.wapio.endpoint,
+        lastFailure: latestWhatsappFailure?.errorMessage ?? null,
         phoneNumberIdMasked: maskTail(env.whatsapp.phoneNumberId),
         instanceName: env.whatsapp.provider === "WAPIO" ? env.whatsapp.wapio.instanceName : "",
         apiVersion: env.whatsapp.apiVersion,

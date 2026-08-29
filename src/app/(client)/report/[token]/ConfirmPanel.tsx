@@ -258,7 +258,7 @@ export function ConfirmPanel({
       >
         <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-2 lg:mx-0 lg:max-w-none lg:flex-col lg:items-stretch">
           <a
-            href={`/api/client/${token}/pdf`}
+            href={`/api/client/${token}/pdf?download=1`}
             target="_blank"
             rel="noopener noreferrer"
             className="te-focus flex h-12 flex-1 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 lg:h-11 lg:w-full lg:flex-none"

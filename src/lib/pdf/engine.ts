@@ -46,8 +46,7 @@ async function serverlessChromium(): Promise<string | null> {
 
 /**
  * Locates a Chromium binary: an explicitly configured path, a serverless
- * bundle, or a system install. Returns null when none is available, in which
- * case the caller falls back to printable HTML.
+ * bundle, or a system install. Returns null when none is available.
  */
 async function findChromium(): Promise<string | null> {
   if (cachedExecutable !== undefined) return cachedExecutable;
@@ -61,6 +60,10 @@ async function findChromium(): Promise<string | null> {
   const candidates = [
     env.pdf.chromiumPath,
     process.env.PUPPETEER_EXECUTABLE_PATH,
+    process.env.LOCALAPPDATA ? `${process.env.LOCALAPPDATA}/Google/Chrome/Application/chrome.exe` : "",
+    process.env.PROGRAMFILES ? `${process.env.PROGRAMFILES}/Google/Chrome/Application/chrome.exe` : "",
+    process.env["PROGRAMFILES(X86)"] ? `${process.env["PROGRAMFILES(X86)"]}/Google/Chrome/Application/chrome.exe` : "",
+    process.env.PROGRAMFILES ? `${process.env.PROGRAMFILES}/Microsoft/Edge/Application/msedge.exe` : "",
     "/usr/bin/chromium",
     "/usr/bin/chromium-browser",
     "/usr/bin/google-chrome",
@@ -111,30 +114,27 @@ export interface RenderedPdf {
 }
 
 /**
- * Renders a document specification to PDF.
- * If Chromium cannot be located the same markup is returned as a
- * print-ready HTML document so the workflow is never blocked — the caller
- * surfaces this to the user as "printable HTML".
+ * Renders a document specification to PDF. HTML previews use a separate route;
+ * download endpoints must never receive HTML in place of a PDF.
  */
 export async function renderPdf(spec: PdfDocumentSpec): Promise<RenderedPdf> {
   const html = await renderDocumentHtml(spec);
 
   if (env.pdf.driver === "HTML") {
-    const buffer = Buffer.from(html, "utf8");
-    return { buffer, checksum: sum(buffer), contentType: "text/html", fallback: true };
+    throw new AppError(
+      "PDF generation is disabled because PDF_DRIVER=HTML. Set PDF_DRIVER=AUTO or CHROMIUM.",
+      500,
+      "PDF_UNAVAILABLE",
+    );
   }
 
   const executablePath = await findChromium();
   if (!executablePath) {
-    if (env.pdf.driver === "CHROMIUM") {
-      throw new AppError(
-        "PDF generation is unavailable because no Chromium binary was found. Set CHROMIUM_PATH or switch PDF_DRIVER to HTML.",
-        500,
-        "PDF_UNAVAILABLE",
-      );
-    }
-    const buffer = Buffer.from(html, "utf8");
-    return { buffer, checksum: sum(buffer), contentType: "text/html", fallback: true };
+    throw new AppError(
+      "PDF generation is unavailable because no Chromium binary was found. Set CHROMIUM_PATH to a Chrome/Chromium executable.",
+      500,
+      "PDF_UNAVAILABLE",
+    );
   }
 
   const puppeteer = (await import("puppeteer-core")).default;

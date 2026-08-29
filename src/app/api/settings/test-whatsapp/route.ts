@@ -3,9 +3,15 @@ import { z } from "zod";
 import { ok, fail } from "@/lib/http";
 import { requirePermission } from "@/lib/guard";
 import { sendWhatsappTemplate } from "@/lib/services/whatsapp";
+import { whatsappNumberError } from "@/lib/validation/whatsapp";
 import { env } from "@/lib/env";
 
-const schema = z.object({ to: z.string().trim().min(6, "Enter a valid mobile number") });
+const schema = z.object({
+  to: z.string().trim().min(1, "Enter a WhatsApp mobile number.").superRefine((value, ctx) => {
+    const message = whatsappNumberError(value);
+    if (message) ctx.addIssue({ code: z.ZodIssueCode.custom, message });
+  }),
+});
 
 export async function POST(req: NextRequest) {
   try {
