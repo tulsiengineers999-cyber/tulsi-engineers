@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Camera, ImagePlus, Trash2, Loader2, X } from "lucide-react";
 import { Button, Select, Textarea, Label } from "@/components/ui/primitives";
 import { useToast } from "@/components/ui/Toast";
@@ -38,6 +39,7 @@ export function PhotoUploader({
   compact?: boolean;
 }) {
   const toast = useToast();
+  const router = useRouter();
   const cameraRef = useRef<HTMLInputElement>(null);
   const galleryRef = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState<Pending[]>([]);
@@ -122,6 +124,7 @@ export function PhotoUploader({
       );
       setDescription("");
       onUploaded?.();
+      router.refresh();
     }
     if (failed.length) {
       toast.error(

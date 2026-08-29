@@ -69,6 +69,12 @@ export async function POST(req: NextRequest) {
       throw Errors.validation("A photo must be attached to a job, visit, MOM, report or equipment record.");
     }
 
+    console.info("[photos] upload started", {
+      userId: user.id,
+      fileCount: files.length,
+      links: Object.fromEntries(Object.entries(meta).filter(([key, value]) => key.endsWith("Id") && value)),
+    });
+
     const saved = [];
     for (const file of files) {
       validateUpload({ type: file.type, size: file.size }, "image");
@@ -103,8 +109,15 @@ export async function POST(req: NextRequest) {
       description: `Uploaded ${saved.length} photo(s) — ${meta.category}`,
     });
 
+    console.info("[photos] upload completed", {
+      userId: user.id,
+      photoIds: saved.map((photo) => photo.id),
+      fileCount: saved.length,
+    });
+
     return created(saved);
   } catch (e) {
+    console.error("[photos] upload failed", e);
     return fail(e);
   }
 }
