@@ -463,6 +463,8 @@ export async function loadDocument(docType: DocumentType, id: string): Promise<L
 
 /* ── PDF generation & caching ───────────────────────────── */
 
+const PDF_BRANDING_VERSION = "r2";
+
 export async function generatePdf(docType: DocumentType, id: string, generatedById?: string) {
   const doc = await loadDocument(docType, id);
 
@@ -470,7 +472,8 @@ export async function generatePdf(docType: DocumentType, id: string, generatedBy
     where: { docType_recordId_version: { docType, recordId: id, version: doc.version } },
   });
   if (existing) {
-    if (existing.fileName.endsWith(".html")) {
+    const currentBranding = existing.fileName.includes(`-${PDF_BRANDING_VERSION}.`);
+    if (!currentBranding || existing.fileName.endsWith(".html")) {
       await prisma.pdfDocument.delete({ where: { id: existing.id } }).catch(() => undefined);
     } else {
     try {
@@ -484,7 +487,7 @@ export async function generatePdf(docType: DocumentType, id: string, generatedBy
 
   const rendered = await renderPdf(doc.spec);
   const ext = rendered.contentType === "application/pdf" ? "pdf" : "html";
-  const fileName = `${doc.number.replace(/[\/\\]/g, "-")}-v${doc.version}.${ext}`;
+  const fileName = `${doc.number.replace(/[\/\\]/g, "-")}-v${doc.version}-${PDF_BRANDING_VERSION}.${ext}`;
   const stored = await putFile("pdf", fileName, rendered.contentType, rendered.buffer);
 
   const pdf = await prisma.pdfDocument.create({
