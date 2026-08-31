@@ -46,7 +46,10 @@ function getTransport(): Transporter | null {
 }
 
 export async function emailConfigured(): Promise<boolean> {
-  return env.mail.driver === "SMTP" && Boolean(env.mail.host);
+  return (
+    env.mail.driver === "SMTP" &&
+    Boolean(env.mail.host && env.mail.port && env.mail.user && env.mail.password && env.mail.fromEmail)
+  );
 }
 
 async function companyVariables() {

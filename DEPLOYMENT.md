@@ -98,12 +98,18 @@ MAX_UPLOAD_MB=15
 MAIL_DRIVER=SMTP
 MAIL_FROM_NAME=TULSI ENGINEERS
 MAIL_FROM_EMAIL=service@yourdomain.com
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_SECURE=false
-SMTP_USER=your@gmail.com
-SMTP_PASSWORD=your-app-password
+MAIL_REPLY_TO=service@yourdomain.com
+SMTP_HOST=smtp.hostinger.com
+SMTP_PORT=465
+SMTP_SECURE=true
+SMTP_USER=service@yourdomain.com
+SMTP_PASSWORD=your-hostinger-mailbox-password
 ```
+
+Create the mailbox in Hostinger before deploying. For port `587`, set
+`SMTP_SECURE=false` to use STARTTLS. Keep the mailbox password in the hosting
+provider's environment variables and use the same domain mailbox for
+`SMTP_USER` and `MAIL_FROM_EMAIL`.
 
 ### Optional — WhatsApp (defaults to LOG / no messages sent)
 ```
@@ -182,4 +188,4 @@ Default login after seeding:
 - [Vercel Docs](https://vercel.com/docs)
 - [Neon Serverless Postgres](https://neon.tech/docs)
 - [Next.js Deployment](https://nextjs.org/docs/deployment)
-- [Cloudflare R2](https://developers.cloudflare.com/r2/)
+- [Cloudflare R2](https://developers.cloudflare.com/r2/)

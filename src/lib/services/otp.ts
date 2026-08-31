@@ -98,7 +98,7 @@ export async function requestOtp(input: RequestOtpInput) {
   });
 
   if (input.channel === "EMAIL") {
-    await sendTemplatedEmail({
+    const delivery = await sendTemplatedEmail({
       templateCode: "OTP_CODE",
       to: input.destination,
       variables: {
@@ -112,6 +112,10 @@ export async function requestOtp(input: RequestOtpInput) {
       recordNumber: input.recordNumber,
       customerId: input.customerId,
     });
+
+    if (!delivery.delivered && !delivery.simulated) {
+      throw Errors.validation(delivery.error ?? "The email verification code could not be sent. Please try again.");
+    }
   } else {
     const delivery = await sendWhatsappTemplate({
       templateCode: "OTP",

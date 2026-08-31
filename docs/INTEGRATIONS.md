@@ -25,15 +25,21 @@ used without messaging real customers.
 
 ```
 MAIL_DRIVER="SMTP"
-SMTP_HOST="email-smtp.ap-south-1.amazonaws.com"
-SMTP_PORT="587"
-SMTP_SECURE="false"          # true only for port 465
-SMTP_USER="…"
-SMTP_PASSWORD="…"
+SMTP_HOST="smtp.hostinger.com"
+SMTP_PORT="465"
+SMTP_SECURE="true"            # use false with port 587
+SMTP_USER="service@yourdomain.com"
+SMTP_PASSWORD="<Hostinger mailbox password>"
 MAIL_FROM_NAME="TULSI ENGINEERS"
-MAIL_FROM_EMAIL="service@tulsiengineers.com"
-MAIL_REPLY_TO="service@tulsiengineers.com"
+MAIL_FROM_EMAIL="service@yourdomain.com"
+MAIL_REPLY_TO="service@yourdomain.com"
 ```
+
+Create the mailbox in Hostinger first. Use the complete mailbox address as
+`SMTP_USER`, and make `MAIL_FROM_EMAIL` the same address (or another mailbox
+allowed by the domain). Hostinger supports SMTP over SSL on port `465` and
+STARTTLS on port `587`. Add these variables to the hosting provider's server
+environment, not to Git.
 
 Set up SPF, DKIM and DMARC on the sending domain or reports will land in spam.
 
