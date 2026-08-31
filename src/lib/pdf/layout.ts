@@ -71,7 +71,7 @@ export async function renderDocumentHtml(spec: PdfDocumentSpec): Promise<string>
   let bundledLogo = "";
   if (opts.showLogo) {
     try {
-      const logo = await readFile(path.join(process.cwd(), "public", "logo.jpeg"));
+      const logo = await readFile(path.join(process.cwd(), "src", "lib", "image", "logo.jpeg"));
       bundledLogo = `data:image/jpeg;base64,${logo.toString("base64")}`;
     } catch {
       bundledLogo = "";
