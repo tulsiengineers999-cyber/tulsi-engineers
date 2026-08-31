@@ -1,4 +1,6 @@
 import "server-only";
+import path from "node:path";
+import { readFile } from "node:fs/promises";
 import { getCompany, getSetting } from "@/lib/settings";
 import { formatCompanyAddress } from "@/lib/company";
 import { photoDataUri } from "./images";
@@ -66,6 +68,15 @@ export async function renderDocumentHtml(spec: PdfDocumentSpec): Promise<string>
   }>("pdf.options", { showLogo: true, showSignature: true, showPhotos: true, photosPerRow: 2, pageSize: "A4", showTerms: true });
 
   const address = formatCompanyAddress(company);
+  let bundledLogo = "";
+  if (opts.showLogo) {
+    try {
+      const logo = await readFile(path.join(process.cwd(), "public", "logo.jpeg"));
+      bundledLogo = `data:image/jpeg;base64,${logo.toString("base64")}`;
+    } catch {
+      bundledLogo = "";
+    }
+  }
 
   // Photographs are embedded as data URIs. Chromium prints without a session
   // cookie and the client portal serves this markup to an unauthenticated
@@ -84,7 +95,7 @@ export async function renderDocumentHtml(spec: PdfDocumentSpec): Promise<string>
   const header = `
   <header class="doc-header">
     <div class="brand">
-      ${opts.showLogo && company.logoUrl ? `<img class="logo" src="${esc(company.logoUrl)}" alt=""/>` : `<div class="logo-fallback">TE</div>`}
+      ${opts.showLogo && (bundledLogo || company.logoUrl) ? `<img class="logo" src="${esc(bundledLogo || company.logoUrl)}" alt="${esc(company.name)}"/>` : `<div class="logo-fallback">TE</div>`}
       <div class="brand-text">
         <h1>${esc(company.name)}</h1>
         <p class="tagline">${esc(company.tagline)}</p>
@@ -217,24 +228,24 @@ export async function renderDocumentHtml(spec: PdfDocumentSpec): Promise<string>
   @page { size: ${opts.pageSize || "A4"}; margin: 14mm 12mm 18mm; }
   * { box-sizing: border-box; }
   body { font-family: "Segoe UI", Arial, Helvetica, sans-serif; font-size: 10.5px; color:#111827; margin:0; line-height:1.5; }
-  ${spec.watermark ? `body::before { content:"${esc(spec.watermark)}"; position:fixed; inset:0; display:flex; align-items:center; justify-content:center; font-size:80px; font-weight:800; color:rgba(15,76,129,.07); transform:rotate(-30deg); z-index:0; pointer-events:none; }` : ""}
-  .doc-header { display:flex; justify-content:space-between; gap:16px; border-bottom:2.5px solid #0F4C81; padding-bottom:10px; margin-bottom:14px; }
+  ${spec.watermark ? `body::before { content:"${esc(spec.watermark)}"; position:fixed; inset:0; display:flex; align-items:center; justify-content:center; font-size:80px; font-weight:800; color:rgba(198,40,40,.07); transform:rotate(-30deg); z-index:0; pointer-events:none; }` : ""}
+  .doc-header { display:flex; justify-content:space-between; gap:16px; border-bottom:2.5px solid #C62828; padding-bottom:10px; margin-bottom:14px; }
   .brand { display:flex; gap:10px; align-items:flex-start; max-width:62%; }
-  .logo { width:52px; height:52px; object-fit:contain; }
-  .logo-fallback { width:46px;height:46px;border-radius:6px;background:#F26522;color:#fff;font-weight:900;font-size:17px;display:flex;align-items:center;justify-content:center; }
-  .brand-text h1 { margin:0; font-size:17px; letter-spacing:.4px; color:#0F4C81; font-weight:800; }
+  .logo { width:62px; height:62px; object-fit:contain; border:1px solid #fecaca; background:#fff; }
+  .logo-fallback { width:46px;height:46px;border-radius:6px;background:#C62828;color:#fff;font-weight:900;font-size:17px;display:flex;align-items:center;justify-content:center; }
+  .brand-text h1 { margin:0; font-size:17px; letter-spacing:.4px; color:#C62828; font-weight:800; }
   .tagline { margin:2px 0 4px; font-size:8.5px; color:#475569; line-height:1.35; }
   .contact { margin:0; font-size:8px; color:#64748b; line-height:1.45; }
   .doc-meta { text-align:right; min-width:190px; }
-  .doc-title { font-size:12.5px; font-weight:800; text-transform:uppercase; letter-spacing:.6px; color:#0F4C81; }
-  .doc-number { font-size:11px; font-weight:700; color:#F26522; margin:1px 0 6px; }
+  .doc-title { font-size:12.5px; font-weight:800; text-transform:uppercase; letter-spacing:.6px; color:#C62828; }
+  .doc-number { font-size:11px; font-weight:700; color:#C62828; margin:1px 0 6px; }
   .meta-table { margin-left:auto; border-collapse:collapse; font-size:8.5px; }
   .meta-table td { padding:1px 0 1px 8px; color:#64748b; text-align:right; }
   .meta-table td b { color:#111827; }
   section { position:relative; z-index:1; margin-bottom:11px; }
   .page-break { page-break-before: always; }
-  .section-title { font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.9px; color:#0F4C81;
-                   background:#EEF4FA; border-left:3px solid #F26522; padding:4px 8px; margin:0 0 6px; }
+  .section-title { font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.9px; color:#991B1B;
+                   background:#FEF2F2; border-left:3px solid #C62828; padding:4px 8px; margin:0 0 6px; }
   .field-grid { width:100%; border-collapse:collapse; }
   .field-grid td { vertical-align:top; padding:3px 8px 3px 0; width:50%; }
   .fl { display:block; font-size:7.5px; text-transform:uppercase; letter-spacing:.5px; color:#64748b; font-weight:700; }
@@ -243,8 +254,8 @@ export async function renderDocumentHtml(spec: PdfDocumentSpec): Promise<string>
   .bl { font-size:7.5px; text-transform:uppercase; letter-spacing:.5px; color:#64748b; font-weight:700; margin-bottom:1px; }
   .bt { font-size:10px; text-align:justify; }
   .data-table { width:100%; border-collapse:collapse; margin:4px 0 8px; }
-  .data-table th { background:#0F4C81; color:#fff; font-size:8px; text-transform:uppercase; letter-spacing:.4px;
-                   padding:4px 6px; text-align:left; border:.5px solid #0F4C81; }
+  .data-table th { background:#C62828; color:#fff; font-size:8px; text-transform:uppercase; letter-spacing:.4px;
+                   padding:4px 6px; text-align:left; border:.5px solid #C62828; }
   .data-table td { border:.5px solid #cbd5e1; padding:4px 6px; font-size:9.5px; vertical-align:top; }
   .data-table tbody tr:nth-child(even) td { background:#f8fafc; }
   .photo-grid { display:grid; gap:8px; margin-top:4px; }
