@@ -463,7 +463,7 @@ export async function loadDocument(docType: DocumentType, id: string): Promise<L
 
 /* ── PDF generation & caching ───────────────────────────── */
 
-const PDF_BRANDING_VERSION = "r2";
+const PDF_BRANDING_VERSION = "r3";
 
 export async function generatePdf(docType: DocumentType, id: string, generatedById?: string) {
   const doc = await loadDocument(docType, id);
