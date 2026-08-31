@@ -95,18 +95,6 @@ export function LoginForm({ next, justReset }: { next?: string; justReset?: bool
         </Button>
       </form>
 
-      <div className="mt-8 rounded-lg border border-slate-200 bg-slate-50 p-3">
-        <p className="mb-1.5 text-[11px] font-bold tracking-wider text-slate-500 uppercase">Demo accounts</p>
-        <ul className="space-y-0.5 text-[11px] text-slate-600">
-          <li><b>admin</b> / Tulsi@2026 — Super Admin</li>
-          <li><b>manager</b> / Tulsi@2026 — Service Manager</li>
-          <li><b>engineer</b> / Tulsi@2026 — Service Engineer (mobile view)</li>
-          <li><b>technician</b> / Tulsi@2026 — Technician</li>
-        </ul>
-        <p className="mt-2 text-[10px] text-slate-400">
-          Remove this panel and change every default password before going live.
-        </p>
-      </div>
     </div>
   );
 }
