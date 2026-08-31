@@ -231,7 +231,7 @@ export async function renderDocumentHtml(spec: PdfDocumentSpec): Promise<string>
   ${spec.watermark ? `body::before { content:"${esc(spec.watermark)}"; position:fixed; inset:0; display:flex; align-items:center; justify-content:center; font-size:80px; font-weight:800; color:rgba(198,40,40,.07); transform:rotate(-30deg); z-index:0; pointer-events:none; }` : ""}
   .doc-header { display:flex; justify-content:space-between; gap:16px; border-bottom:2.5px solid #C62828; padding-bottom:10px; margin-bottom:14px; }
   .brand { display:flex; gap:10px; align-items:flex-start; max-width:62%; }
-  .logo { width:62px; height:62px; object-fit:contain; border:1px solid #fecaca; background:#fff; }
+  .logo { width:62px; height:62px; object-fit:contain; background:#fff; }
   .logo-fallback { width:46px;height:46px;border-radius:6px;background:#C62828;color:#fff;font-weight:900;font-size:17px;display:flex;align-items:center;justify-content:center; }
   .brand-text h1 { margin:0; font-size:17px; letter-spacing:.4px; color:#C62828; font-weight:800; }
   .tagline { margin:2px 0 4px; font-size:8.5px; color:#475569; line-height:1.35; }
