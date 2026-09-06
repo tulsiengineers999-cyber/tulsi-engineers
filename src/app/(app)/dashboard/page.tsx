@@ -25,13 +25,13 @@ import type { BadgeTone } from "@/components/ui/primitives";
    against the app's white chart surface. Single-hue bars use the brand color
    directly; multi-series charts use the validated categorical triplet. ── */
 const CHART = {
-  primary: "#0f4c81",
-  accent: "#f26522",
+  primary: "#e52b1a",
+  accent: "#111111",
   grid: "#e2e8f0",
   axis: "#94a3b8",
-  series: { jobs: "#2a78d6", visits: "#eb6834", reports: "#1baf7a" },
-  workload: { open: "#2a78d6", completed: "#1baf7a" },
-  status: { PENDING: "#c98500", CONFIRMED: "#008300", CORRECTION_REQUESTED: "#e34948", EXPIRED: "#94a3b8" },
+  series: { jobs: "#e52b1a", visits: "#111111", reports: "#b51f14" },
+  workload: { open: "#e52b1a", completed: "#111111" },
+  status: { PENDING: "#b45309", CONFIRMED: "#15803d", CORRECTION_REQUESTED: "#e52b1a", EXPIRED: "#94a3b8" },
 };
 
 const CONFIRMATION_STATUS_LABELS: Record<string, string> = {

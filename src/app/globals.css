@@ -5,12 +5,12 @@
    Colours are driven by CSS variables so Admin → Settings → Theme
    can restyle the whole application without a rebuild.            */
 :root {
-  --te-primary: #0f4c81;
-  --te-primary-dark: #0b3a63;
-  --te-primary-light: #e8f1f9;
-  --te-accent: #f26522;
-  --te-accent-light: #fdeee6;
-  --te-sidebar: #0b2e4f;
+  --te-primary: #e52b1a;
+  --te-primary-dark: #b51f14;
+  --te-primary-light: #fef0ee;
+  --te-accent: #e52b1a;
+  --te-accent-light: #fef0ee;
+  --te-sidebar: #111111;
 
   --te-bg: #f4f6f9;
   --te-surface: #ffffff;
@@ -24,8 +24,8 @@
   --te-warning-bg: #fef3c7;
   --te-danger: #b91c1c;
   --te-danger-bg: #fee2e2;
-  --te-info: #1d4ed8;
-  --te-info-bg: #dbeafe;
+  --te-info: #b42318;
+  --te-info-bg: #fef0ee;
   --te-neutral: #475569;
   --te-neutral-bg: #f1f5f9;
 }

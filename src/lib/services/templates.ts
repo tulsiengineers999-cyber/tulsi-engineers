@@ -11,12 +11,12 @@ export interface EmailTemplateSeed {
 const wrap = (title: string, inner: string) => `
 <div style="font-family:Segoe UI,Arial,sans-serif;background:#f4f6f8;padding:24px">
   <div style="max-width:640px;margin:0 auto;background:#ffffff;border-radius:8px;overflow:hidden;border:1px solid #e3e8ee">
-    <div style="background:#0F4C81;padding:20px 24px;color:#ffffff">
+    <div style="background:#111111;padding:20px 24px;color:#ffffff">
       <div style="font-size:20px;font-weight:700;letter-spacing:.5px">{{company_name}}</div>
       <div style="font-size:11px;opacity:.85;margin-top:4px">{{company_tagline}}</div>
     </div>
     <div style="padding:24px;color:#1f2937;font-size:14px;line-height:1.6">
-      <h2 style="margin:0 0 16px;font-size:18px;color:#0F4C81">${title}</h2>
+      <h2 style="margin:0 0 16px;font-size:18px;color:#E52B1A">${title}</h2>
       ${inner}
     </div>
     <div style="background:#f8fafc;padding:16px 24px;font-size:11px;color:#64748b;border-top:1px solid #e3e8ee">
@@ -27,7 +27,7 @@ const wrap = (title: string, inner: string) => `
 </div>`;
 
 const button = (label: string) =>
-  `<p style="margin:24px 0"><a href="{{report_link}}" style="background:#F26522;color:#fff;text-decoration:none;padding:12px 22px;border-radius:6px;font-weight:600;display:inline-block">${label}</a></p>
+  `<p style="margin:24px 0"><a href="{{report_link}}" style="background:#E52B1A;color:#fff;text-decoration:none;padding:12px 22px;border-radius:6px;font-weight:600;display:inline-block">${label}</a></p>
    <p style="font-size:12px;color:#64748b">If the button does not work, copy this link into your browser:<br/><span style="word-break:break-all">{{report_link}}</span></p>`;
 
 const COMMON = [
@@ -138,7 +138,7 @@ export const EMAIL_TEMPLATES: EmailTemplateSeed[] = [
       "Verification Code",
       `<p>Dear {{contact_person}},</p>
        <p>Use the code below to confirm <b>{{document_number}}</b>. It is valid for {{expiry_minutes}} minutes.</p>
-       <p style="font-size:30px;letter-spacing:8px;font-weight:700;color:#0F4C81;margin:20px 0">{{otp_code}}</p>
+      <p style="font-size:30px;letter-spacing:8px;font-weight:700;color:#E52B1A;margin:20px 0">{{otp_code}}</p>
        <p style="font-size:12px;color:#64748b">If you did not request this code, please ignore this email.</p>`,
     ),
     variables: [...COMMON, "otp_code", "document_number", "expiry_minutes"],
@@ -151,7 +151,7 @@ export const EMAIL_TEMPLATES: EmailTemplateSeed[] = [
       "Password Reset",
       `<p>Hello {{user_name}},</p>
        <p>A password reset was requested for your account. This link expires in {{expiry_minutes}} minutes.</p>
-       <p style="margin:24px 0"><a href="{{reset_link}}" style="background:#0F4C81;color:#fff;text-decoration:none;padding:12px 22px;border-radius:6px;font-weight:600;display:inline-block">Reset Password</a></p>
+      <p style="margin:24px 0"><a href="{{reset_link}}" style="background:#E52B1A;color:#fff;text-decoration:none;padding:12px 22px;border-radius:6px;font-weight:600;display:inline-block">Reset Password</a></p>
        <p style="font-size:12px;color:#64748b">If you did not request this, no action is needed.</p>`,
     ),
     variables: ["company_name", "company_tagline", "company_address", "company_phone", "company_email", "company_website", "user_name", "reset_link", "expiry_minutes"],

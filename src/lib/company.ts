@@ -43,9 +43,9 @@ export const DEFAULT_COMPANY: CompanyProfile = {
 };
 
 export const DEFAULT_THEME = {
-  primary: "#0F4C81",
-  accent: "#F26522",
-  sidebar: "#0B2E4F",
+  primary: "#E52B1A",
+  accent: "#E52B1A",
+  sidebar: "#111111",
 };
 
 export function formatCompanyAddress(c: CompanyProfile): string {

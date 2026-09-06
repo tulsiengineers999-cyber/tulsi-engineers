@@ -21,7 +21,7 @@ function toCsv(result: ReportResult): string {
   return lines.join("\r\n");
 }
 
-const PRIMARY_ARGB = "FF0F4C81";
+const PRIMARY_ARGB = "FFE52B1A";
 
 export async function GET(req: NextRequest) {
   try {
