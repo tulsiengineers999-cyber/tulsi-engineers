@@ -34,7 +34,10 @@ export async function GET() {
         provider: env.whatsapp.provider,
         configured: whatsappConfigured(),
         configurationError: whatsappConfigurationError(),
-        endpoint: env.whatsapp.wapio.endpoint,
+        endpoint:
+          env.whatsapp.provider === "WAPIO"
+            ? env.whatsapp.wapio.endpoint
+            : `https://graph.facebook.com/${env.whatsapp.apiVersion}/${env.whatsapp.phoneNumberId}/messages`,
         lastFailure: latestWhatsappFailure?.errorMessage ?? null,
         phoneNumberIdMasked: maskTail(env.whatsapp.phoneNumberId),
         instanceName: env.whatsapp.provider === "WAPIO" ? env.whatsapp.wapio.instanceName : "",

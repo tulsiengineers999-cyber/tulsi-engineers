@@ -42,7 +42,10 @@ export function whatsappConfigurationError(): string | null {
   if (env.whatsapp.driver !== "CLOUD_API") return null;
   if (env.whatsapp.provider === "WAPIO") {
     if (!env.whatsapp.wapio.apiKey) return "WAPIO_API_KEY is missing.";
+    return null;
   }
+  if (!env.whatsapp.phoneNumberId) return "WHATSAPP_PHONE_NUMBER_ID is missing.";
+  if (!env.whatsapp.accessToken) return "WHATSAPP_ACCESS_TOKEN is missing.";
   return null;
 }
 
@@ -113,8 +116,10 @@ export async function sendWhatsappTemplate(input: SendWhatsappInput) {
     });
     console.error("[whatsapp] configuration invalid", {
       provider: env.whatsapp.provider,
-      endpoint: env.whatsapp.wapio.endpoint,
-      apiKeyFormat: env.whatsapp.wapio.apiKey ? `${env.whatsapp.wapio.apiKey.slice(0, 7)}...` : "missing",
+      endpoint:
+        env.whatsapp.provider === "WAPIO"
+          ? env.whatsapp.wapio.endpoint
+          : `https://graph.facebook.com/${env.whatsapp.apiVersion}/${env.whatsapp.phoneNumberId}/messages`,
     });
     return { id: log.id, delivered: false, error: configurationError };
   }
@@ -201,9 +206,11 @@ export async function sendWhatsappTemplate(input: SendWhatsappInput) {
       const providerMessage =
         json?.error?.error_data?.details || json?.error?.message || json?.message || `HTTP ${res.status}`;
       const message =
-        res.status === 401
-          ? "WAPIO authentication failed (HTTP 401). The API key is invalid, expired, or belongs to the legacy WAPIO endpoint. Create a current session key in WAPIO Developers."
-          : providerMessage;
+        res.status === 401 && env.whatsapp.provider === "WAPIO"
+          ? "WAPIO authentication failed (HTTP 401). Verify that WAPIO_API_KEY is the current key from this workspace, that it has no extra spaces, and that the Wapio account/instance is active."
+          : res.status === 401 && env.whatsapp.provider === "META"
+            ? "Meta WhatsApp authentication failed (HTTP 401). Verify WHATSAPP_ACCESS_TOKEN, its permissions, and that it belongs to this phone number ID."
+            : providerMessage;
       await prisma.whatsappLog.update({
         where: { id: log.id },
         data: { status: "FAILED", errorMessage: String(message).slice(0, 500) },
@@ -232,7 +239,7 @@ export async function sendWhatsappTemplate(input: SendWhatsappInput) {
       ? env.whatsapp.wapio.endpoint
       : `https://graph.facebook.com/${env.whatsapp.apiVersion}/${env.whatsapp.phoneNumberId}/messages`;
     const error = reason.includes("timeout") || reason.includes("ETIMEDOUT") || reason.includes("UND_ERR_CONNECT_TIMEOUT")
-      ? `WhatsApp connection timed out at ${endpoint} (${cause || "timeout"}). Check firewall, proxy, DNS, or WAPIO availability.`
+      ? `WhatsApp connection timed out at ${endpoint} (${cause || "timeout"}). Check internet/firewall access and confirm the ${env.whatsapp.provider} endpoint is online.`
       : `WhatsApp connection failed at ${endpoint}: ${reason}${cause ? ` (${cause})` : ""}`;
     await prisma.whatsappLog.update({
       where: { id: log.id },

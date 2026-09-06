@@ -110,7 +110,7 @@ Amazon SES (ap-south-1), Brevo, Zoho Mail and Google Workspace SMTP all work.
 | `WHATSAPP_PHONE_NUMBER_ID` | From WhatsApp Manager |
 | `WHATSAPP_BUSINESS_ACCOUNT_ID` | From WhatsApp Manager |
 | `WHATSAPP_ACCESS_TOKEN` | Use a **System User** permanent token, not a 24-hour test token |
-| `WHATSAPP_API_VERSION` | `v21.0` |
+| `WHATSAPP_API_VERSION` | `v25.0` |
 
 See [`INTEGRATIONS.md`](INTEGRATIONS.md) for the template approval process.
 
