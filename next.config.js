@@ -44,6 +44,10 @@ const nextConfig = {
         "**/Application Data/**",
       ],
     },
+    outputFileTracingIncludes: {
+      "/api/documents/**": ["./node_modules/@sparticuz/chromium/bin/**"],
+      "/api/client/**": ["./node_modules/@sparticuz/chromium/bin/**"],
+    },
     serverComponentsExternalPackages: [
       "@prisma/client",
       "prisma",

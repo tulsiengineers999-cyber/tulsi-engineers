@@ -1,5 +1,6 @@
 import "server-only";
 import crypto from "node:crypto";
+import chromium from "@sparticuz/chromium";
 import { env } from "@/lib/env";
 import { AppError } from "@/lib/http";
 import { renderDocumentHtml, pdfMargins, type PdfDocumentSpec } from "./layout";
@@ -10,8 +11,8 @@ let cachedLaunchArgs: string[] | null = null;
 /**
  * Serverless hosts (Vercel, AWS Lambda) have no browser on the filesystem.
  * `@sparticuz/chromium` ships a Lambda-compatible build that unpacks itself
- * into /tmp on first use. It is an optional dependency: install it only where
- * it is needed, and this resolves to null everywhere else.
+ * into /tmp on first use. It is included as a production dependency so the
+ * bundled binary is available in Vercel functions.
  *
  *   npm install @sparticuz/chromium
  */
@@ -20,25 +21,12 @@ async function serverlessChromium(): Promise<string | null> {
   if (!looksServerless) return null;
 
   try {
-    // The specifier is held in a variable so the bundler and the type checker
-    // treat this as optional: the package only needs to exist where it is used.
-    const specifier = "@sparticuz/chromium";
-    const mod = (await import(specifier)) as {
-      default?: { executablePath: (input?: string) => Promise<string>; args: string[] };
-      executablePath?: (input?: string) => Promise<string>;
-      args?: string[];
-    };
-    const chromium = (mod.default ?? mod) as {
-      executablePath: (input?: string) => Promise<string>;
-      args: string[];
-    };
     cachedLaunchArgs = chromium.args;
     return await chromium.executablePath();
   } catch {
     console.warn(
-      "[pdf] running on a serverless host without @sparticuz/chromium installed — " +
-        "documents will be produced as printable HTML. Run `npm install @sparticuz/chromium` " +
-        "or set PDF_DRIVER=HTML to silence this.",
+      "[pdf] bundled @sparticuz/chromium could not be initialized — " +
+        "set PDF_DRIVER=HTML only if printable HTML is acceptable.",
     );
     return null;
   }
