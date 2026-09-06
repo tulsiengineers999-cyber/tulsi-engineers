@@ -28,11 +28,11 @@ MAIL_DRIVER="SMTP"
 SMTP_HOST="smtp.hostinger.com"
 SMTP_PORT="465"
 SMTP_SECURE="true"            # use false with port 587
-SMTP_USER="service@yourdomain.com"
+SMTP_USER="service@tulsiengineers.in"
 SMTP_PASSWORD="<Hostinger mailbox password>"
 MAIL_FROM_NAME="TULSI ENGINEERS"
-MAIL_FROM_EMAIL="service@yourdomain.com"
-MAIL_REPLY_TO="service@yourdomain.com"
+MAIL_FROM_EMAIL="service@tulsiengineers.in"
+MAIL_REPLY_TO="service@tulsiengineers.in"
 ```
 
 Create the mailbox in Hostinger first. Use the complete mailbox address as
@@ -71,11 +71,11 @@ Test from Admin → System Settings → Integrations → Send test email.
 
 ```
 WHATSAPP_DRIVER="CLOUD_API"
-WHATSAPP_API_VERSION="v21.0"
+WHATSAPP_API_VERSION="v25.0"
 WHATSAPP_PHONE_NUMBER_ID="…"          # WhatsApp Manager → API Setup
 WHATSAPP_BUSINESS_ACCOUNT_ID="…"
 WHATSAPP_ACCESS_TOKEN="…"             # System User permanent token
-WHATSAPP_DEFAULT_LANGUAGE="en"
+WHATSAPP_DEFAULT_LANGUAGE="en_US"
 ```
 
 ### Templates to create in WhatsApp Manager

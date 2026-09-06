@@ -47,7 +47,7 @@ export const env = {
     user: str("SMTP_USER"),
     password: str("SMTP_PASSWORD"),
     fromName: str("MAIL_FROM_NAME", "TULSI ENGINEERS"),
-    fromEmail: str("MAIL_FROM_EMAIL", "sms@tulsiengineers.in"),
+    fromEmail: str("MAIL_FROM_EMAIL", "service@tulsiengineers.in"),
     replyTo: str("MAIL_REPLY_TO"),
   },
 

@@ -97,12 +97,12 @@ MAX_UPLOAD_MB=15
 ```
 MAIL_DRIVER=SMTP
 MAIL_FROM_NAME=TULSI ENGINEERS
-MAIL_FROM_EMAIL=service@yourdomain.com
-MAIL_REPLY_TO=service@yourdomain.com
+MAIL_FROM_EMAIL=service@tulsiengineers.in
+MAIL_REPLY_TO=service@tulsiengineers.in
 SMTP_HOST=smtp.hostinger.com
 SMTP_PORT=465
 SMTP_SECURE=true
-SMTP_USER=service@yourdomain.com
+SMTP_USER=service@tulsiengineers.in
 SMTP_PASSWORD=your-hostinger-mailbox-password
 ```
 
@@ -114,11 +114,11 @@ provider's environment variables and use the same domain mailbox for
 ### Optional — WhatsApp (defaults to LOG / no messages sent)
 ```
 WHATSAPP_DRIVER=CLOUD_API
-WHATSAPP_API_VERSION=v21.0
+WHATSAPP_API_VERSION=v25.0
 WHATSAPP_PHONE_NUMBER_ID=your-phone-id
 WHATSAPP_BUSINESS_ACCOUNT_ID=your-account-id
 WHATSAPP_ACCESS_TOKEN=your-token
-WHATSAPP_DEFAULT_LANGUAGE=en
+WHATSAPP_DEFAULT_LANGUAGE=en_US
 ```
 
 ### Optional — Other
@@ -189,3 +189,14 @@ Default login after seeding:
 - [Neon Serverless Postgres](https://neon.tech/docs)
 - [Next.js Deployment](https://nextjs.org/docs/deployment)
 - [Cloudflare R2](https://developers.cloudflare.com/r2/)
+
+
+
+Demo accounts
+
+admin / Tulsi@2026 — Super Admin
+manager / Tulsi@2026 — Service Manager
+engineer / Tulsi@2026 — Service Engineer (mobile view)
+technician / Tulsi@2026 — Technician
+Remove this panel and change every default password before going live.
+

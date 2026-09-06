@@ -36,7 +36,7 @@ const SAMPLE: Record<string, string> = {
   company_tagline: "Manufacturer, Supplier, Repairer & Service Provider of Industrial Boilers, Heaters, Pollution Control Equipment & Accessories",
   company_address: "Plot No. 24, GIDC Industrial Estate, Odhav Road, Ahmedabad, Gujarat, 382415",
   company_phone: "079-2287XXXX / +91 98250 00000",
-  company_email: "service@tulsiengineers.com",
+  company_email: "service@tulsiengineers.in",
   company_website: "www.tulsiengineers.com",
   contact_person: "Rakesh Patel",
   customer_name: "ABC Industries Pvt. Ltd.",
