@@ -551,13 +551,17 @@ export default function SettingsPage() {
               />
               <StatusTile
                 title="File storage"
-                ok={integrations.storage.driver === "S3"}
+                ok={integrations.storage.driver === "S3" || integrations.storage.driver === "DATABASE"}
                 lines={[
                   `Driver: ${integrations.storage.driver}`,
-                  integrations.storage.bucket ? `Bucket: ${integrations.storage.bucket}` : "Local disk",
+                  integrations.storage.driver === "S3"
+                    ? `Bucket: ${integrations.storage.bucket}`
+                    : integrations.storage.driver === "DATABASE"
+                      ? "PostgreSQL database"
+                      : "Local disk",
                 ]}
                 warning={
-                  integrations.storage.driver !== "S3"
+                  integrations.storage.driver !== "S3" && integrations.storage.driver !== "DATABASE"
                     ? "Local disk is fine for a single server but is lost on redeploy in most cloud hosts. Use S3-compatible storage in production."
                     : undefined
                 }
