@@ -841,6 +841,17 @@ model FinalServiceReport {
 // FILES
 // ─────────────────────────────────────────────────────────────
 
+model StorageBlob {
+  id         String   @id @default(cuid())
+  storageKey String   @unique
+  mimeType   String
+  data       Bytes
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("storage_blobs")
+}
+
 model Photo {
   id           String        @id @default(cuid())
   category     PhotoCategory @default(OTHER)

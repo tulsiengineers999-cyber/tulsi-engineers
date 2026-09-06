@@ -4,6 +4,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { env } from "@/lib/env";
 import { AppError } from "@/lib/http";
+import { prisma } from "@/lib/prisma";
 
 export const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/heic"];
 export const ALLOWED_DOC_TYPES = [
@@ -75,7 +76,8 @@ export function validateUpload(file: { type: string; size: number }, kind: "imag
  * Persists a buffer and returns its storage key.
  * LOCAL driver writes under LOCAL_STORAGE_PATH (outside /public so files are
  * only reachable through the authorised /api/files route).
- * S3 driver signs a PUT against any S3-compatible endpoint.
+ * S3 driver signs a PUT against any S3-compatible endpoint. DATABASE stores
+ * the bytes in PostgreSQL and is useful for deployments without object storage.
  */
 export async function putFile(
   folder: string,
@@ -88,6 +90,14 @@ export async function putFile(
 
   if (env.storage.driver === "S3") {
     await s3Put(key, mimeType, data);
+  } else if (env.storage.driver === "DATABASE") {
+    const bytes = new Uint8Array(data.byteLength);
+    bytes.set(data);
+    await prisma.storageBlob.upsert({
+      where: { storageKey: key },
+      create: { storageKey: key, mimeType, data: bytes },
+      update: { mimeType, data: bytes },
+    });
   } else {
     const dest = path.join(localRoot(), key);
     await fs.mkdir(path.dirname(dest), { recursive: true });
@@ -100,6 +110,11 @@ export async function putFile(
 export async function getFile(key: string): Promise<Buffer> {
   assertSafeKey(key);
   if (env.storage.driver === "S3") return s3Get(key);
+  if (env.storage.driver === "DATABASE") {
+    const blob = await prisma.storageBlob.findUnique({ where: { storageKey: key }, select: { data: true } });
+    if (!blob) throw new AppError("The stored file could not be found.", 404, "FILE_NOT_FOUND");
+    return Buffer.from(blob.data);
+  }
   return fs.readFile(path.join(localRoot(), key));
 }
 
@@ -108,6 +123,8 @@ export async function deleteFile(key: string): Promise<void> {
   try {
     if (env.storage.driver === "S3") {
       await s3Delete(key);
+    } else if (env.storage.driver === "DATABASE") {
+      await prisma.storageBlob.delete({ where: { storageKey: key } });
     } else {
       await fs.unlink(path.join(localRoot(), key));
     }

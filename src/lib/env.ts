@@ -26,7 +26,7 @@ export const env = {
   sessionTtlHours: num("SESSION_TTL_HOURS", 12),
 
   storage: {
-    driver: str("STORAGE_DRIVER", "LOCAL") as "LOCAL" | "S3",
+    driver: str("STORAGE_DRIVER", "LOCAL") as "LOCAL" | "S3" | "DATABASE",
     localPath: str("LOCAL_STORAGE_PATH", "./storage"),
     s3: {
       endpoint: str("S3_ENDPOINT"),
@@ -47,14 +47,14 @@ export const env = {
     user: str("SMTP_USER"),
     password: str("SMTP_PASSWORD"),
     fromName: str("MAIL_FROM_NAME", "TULSI ENGINEERS"),
-    fromEmail: str("MAIL_FROM_EMAIL", "service@tulsiengineers.example"),
+    fromEmail: str("MAIL_FROM_EMAIL", "sms@tulsiengineers.in"),
     replyTo: str("MAIL_REPLY_TO"),
   },
 
   whatsapp: {
     driver: str("WHATSAPP_DRIVER", "LOG") as "LOG" | "CLOUD_API",
     provider: str("WHATSAPP_PROVIDER", "META") as "META" | "WAPIO",
-    apiVersion: str("WHATSAPP_API_VERSION", "v21.0"),
+    apiVersion: str("WHATSAPP_API_VERSION", "v25.0"),
     phoneNumberId: str("WHATSAPP_PHONE_NUMBER_ID"),
     businessAccountId: str("WHATSAPP_BUSINESS_ACCOUNT_ID"),
     accessToken: str("WHATSAPP_ACCESS_TOKEN"),
@@ -63,7 +63,7 @@ export const env = {
       apiKey: str("WAPIO_API_KEY"),
       instanceName: str("WAPIO_INSTANCE_NAME"),
     },
-    defaultLanguage: str("WHATSAPP_DEFAULT_LANGUAGE", "en"),
+    defaultLanguage: str("WHATSAPP_DEFAULT_LANGUAGE", "en_US"),
   },
 
   otp: {
@@ -88,6 +88,7 @@ export const env = {
 export function assertProductionConfig(): string[] {
   const problems: string[] = [];
   if (!env.isProd) return problems;
+
   if (env.authSecret.startsWith("dev-only")) problems.push("AUTH_SECRET must be set to a strong random value");
   if (env.otp.pepper.startsWith("dev-only")) problems.push("OTP_PEPPER must be set to a strong random value");
   if (!process.env.DATABASE_URL) problems.push("DATABASE_URL is required");
