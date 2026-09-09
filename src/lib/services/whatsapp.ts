@@ -240,7 +240,10 @@ export async function sendWhatsappTemplate(input: SendWhatsappInput) {
     const endpoint = env.whatsapp.provider === "WAPIO"
       ? env.whatsapp.wapio.endpoint
       : `https://graph.facebook.com/${env.whatsapp.apiVersion}/${env.whatsapp.phoneNumberId}/messages`;
-    const error = reason.includes("timeout") || reason.includes("ETIMEDOUT") || reason.includes("UND_ERR_CONNECT_TIMEOUT")
+    const tlsFailure = /ERR_SSL|ERR_TLS|TLSV1|CERT_ALTNAME|CERTIFICATE/i.test(`${reason} ${cause}`);
+    const error = tlsFailure
+      ? `WhatsApp provider TLS handshake failed at ${endpoint}. The Wapvio certificate/hostname was rejected by the production runtime; verify WAPIO_ENDPOINT is exactly https://app.wapvio.com/api/v1/send and ask Wapvio support to check TLS/SNI for this hostname.`
+      : reason.includes("timeout") || reason.includes("ETIMEDOUT") || reason.includes("UND_ERR_CONNECT_TIMEOUT")
       ? `WhatsApp connection timed out at ${endpoint} (${cause || "timeout"}). Check internet/firewall access and confirm the ${env.whatsapp.provider} endpoint is online.`
       : `WhatsApp connection failed at ${endpoint}: ${reason}${cause ? ` (${cause})` : ""}`;
     await prisma.whatsappLog.update({
