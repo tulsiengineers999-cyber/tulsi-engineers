@@ -208,6 +208,8 @@ export async function sendWhatsappTemplate(input: SendWhatsappInput) {
       const message =
         res.status === 401 && env.whatsapp.provider === "WAPIO"
           ? "WAPIO authentication failed (HTTP 401). Verify that WAPIO_API_KEY is the current key from this workspace, that it has no extra spaces, and that the Wapio account/instance is active."
+          : res.status === 404 && env.whatsapp.provider === "WAPIO"
+            ? `WAPIO instance not found or inactive (HTTP 404). Set WAPIO_INSTANCE_NAME to the exact connected WhatsApp instance name in Wapvio, not the API key name. Current value: ${env.whatsapp.wapio.instanceName || "<empty>"}.`
           : res.status === 401 && env.whatsapp.provider === "META"
             ? "Meta WhatsApp authentication failed (HTTP 401). Verify WHATSAPP_ACCESS_TOKEN, its permissions, and that it belongs to this phone number ID."
             : providerMessage;

@@ -111,13 +111,13 @@ Create the mailbox in Hostinger before deploying. For port `587`, set
 provider's environment variables and use the same domain mailbox for
 `SMTP_USER` and `MAIL_FROM_EMAIL`.
 
-### Optional — WhatsApp (defaults to LOG / no messages sent)
+### Optional — Wapio WhatsApp (defaults to LOG / no messages sent)
 ```
 WHATSAPP_DRIVER=CLOUD_API
-WHATSAPP_API_VERSION=v25.0
-WHATSAPP_PHONE_NUMBER_ID=your-phone-id
-WHATSAPP_BUSINESS_ACCOUNT_ID=your-account-id
-WHATSAPP_ACCESS_TOKEN=your-token
+WHATSAPP_PROVIDER=WAPIO
+WAPIO_ENDPOINT=https://app.wapvio.com/api/v1/send
+WAPIO_INSTANCE_NAME=your-wapio-instance-name
+WAPIO_API_KEY=your-wapio-api-key
 WHATSAPP_DEFAULT_LANGUAGE=en_US
 ```
 

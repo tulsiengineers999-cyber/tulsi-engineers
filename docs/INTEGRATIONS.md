@@ -80,10 +80,6 @@ WHATSAPP_DEFAULT_LANGUAGE="en_US"
 
 ### Templates to create in WhatsApp Manager
 
-Create each with category **Utility** (not Marketing — utility templates are
-cheaper and are not subject to marketing opt-out). The names must match exactly
-what is recorded at Admin → Templates → WhatsApp templates.
-
 | Name | Body to submit for approval |
 |---|---|
 | `te_mom_notification` | Dear {{1}}, Minutes of Meeting {{2}} for {{3}} is ready. View and confirm: {{4}} — TULSI ENGINEERS |
@@ -123,7 +119,6 @@ Utility conversations are charged per 24-hour conversation window, and
 authentication conversations separately. Indian rates are among the lowest
 Meta charges, but budget for them: a service business sending a MOM, two daily
 reports and a final report per job opens up to four conversation windows.
-
 ### Using a reseller instead
 
 Interakt, AiSensy, Gupshup, Wati and similar providers wrap the same Cloud API
@@ -141,15 +136,15 @@ Developers, then configure the local or hosting environment with:
 ```
 WHATSAPP_DRIVER="CLOUD_API"
 WHATSAPP_PROVIDER="WAPIO"
-WAPIO_ENDPOINT="https://api.wapio.io/api/send-message"
+WAPIO_ENDPOINT="https://app.wapvio.com/api/v1/send"
 WAPIO_INSTANCE_NAME="Tulsi Engineers"
 WAPIO_API_KEY="sk_live_…"
 ```
 
 The Wapio key is sent only as a server-side Bearer credential. Never commit it
 to Git or place it in a client component. Wapio sends a text message containing
-the rendered template preview through `POST /api/send-message` with `to` and
-`text` fields. The API key identifies the connected WAPIO session.
+the rendered template preview through `POST https://app.wapvio.com/api/v1/send`
+identifies the connected WAPIO session.
 
 ---
 
@@ -158,14 +153,8 @@ the rendered template preview through `POST /api/send-message` with `to` and
 ```
 OTP_LENGTH="6"
 OTP_TTL_MINUTES="10"
-OTP_MAX_ATTEMPTS="5"
-OTP_MAX_RESENDS="3"
-OTP_PEPPER="<long random string>"
-```
 
-How it works:
 
-1. A code is generated with `crypto.randomInt` — never `Math.random`.
 2. Only `HMAC-SHA256(pepper, destination + ":" + code)` is stored. The plain
    code exists in memory long enough to be sent, and nowhere else.
 3. Requesting a new code retires any live code for the same document and destination.

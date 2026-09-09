@@ -16,11 +16,14 @@ export async function GET() {
     await requirePermission("settings.view");
 
     const emailReady = await emailConfigured();
-    const latestWhatsappFailure = await prisma.whatsappLog.findFirst({
-      where: { status: "FAILED" },
+    const latestWhatsappLog = await prisma.whatsappLog.findFirst({
       orderBy: { createdAt: "desc" },
-      select: { errorMessage: true, createdAt: true },
+      select: { status: true, errorMessage: true },
     });
+    const latestWhatsappFailure =
+      latestWhatsappLog?.status === "FAILED" && latestWhatsappLog.errorMessage
+        ? latestWhatsappLog.errorMessage
+        : null;
 
     return ok({
       email: {
@@ -38,7 +41,7 @@ export async function GET() {
           env.whatsapp.provider === "WAPIO"
             ? env.whatsapp.wapio.endpoint
             : `https://graph.facebook.com/${env.whatsapp.apiVersion}/${env.whatsapp.phoneNumberId}/messages`,
-        lastFailure: latestWhatsappFailure?.errorMessage ?? null,
+        lastFailure: latestWhatsappFailure,
         phoneNumberIdMasked: maskTail(env.whatsapp.phoneNumberId),
         instanceName: env.whatsapp.provider === "WAPIO" ? env.whatsapp.wapio.instanceName : "",
         apiVersion: env.whatsapp.apiVersion,

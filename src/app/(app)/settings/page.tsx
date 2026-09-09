@@ -537,7 +537,7 @@ export default function SettingsPage() {
               />
               <StatusTile
                 title={`WhatsApp (${integrations.whatsapp.provider})`}
-                ok={integrations.whatsapp.configured}
+                ok={integrations.whatsapp.configured && !integrations.whatsapp.lastFailure}
                 lines={[
                   `Driver: ${integrations.whatsapp.driver}`,
                   `Provider: ${integrations.whatsapp.provider}`,
@@ -649,7 +649,7 @@ function StatusTile({
         <p className="text-sm font-semibold text-slate-800">{title}</p>
         <Badge tone={ok ? "success" : "warning"}>
           {ok ? <CheckCircle2 className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
-          {ok ? "Live" : "Simulated"}
+          {ok ? "Live" : warning ? "Needs attention" : "Simulated"}
         </Badge>
       </div>
       <ul className="space-y-0.5 text-xs text-slate-500">
