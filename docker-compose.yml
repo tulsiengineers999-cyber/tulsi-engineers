@@ -66,6 +66,7 @@ services:
       WAPIO_ENDPOINT: ${WAPIO_ENDPOINT:-https://app.wapvio.com/api/v1/send}
       WAPIO_INSTANCE_NAME: ${WAPIO_INSTANCE_NAME:-}
       WAPIO_API_KEY: ${WAPIO_API_KEY:-}
+      WAPIO_TEST_NUMBER: ${WAPIO_TEST_NUMBER:-}
     ports:
       - "127.0.0.1:3000:3000"
 

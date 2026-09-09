@@ -44,6 +44,7 @@ export async function GET() {
         lastFailure: latestWhatsappFailure,
         phoneNumberIdMasked: maskTail(env.whatsapp.phoneNumberId),
         instanceName: env.whatsapp.provider === "WAPIO" ? env.whatsapp.wapio.instanceName : "",
+        testNumber: env.whatsapp.provider === "WAPIO" ? env.whatsapp.wapio.testNumber : "",
         apiVersion: env.whatsapp.apiVersion,
       },
       storage: {

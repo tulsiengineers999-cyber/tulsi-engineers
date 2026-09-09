@@ -21,7 +21,7 @@ interface SettingsPayload {
 
 interface Integrations {
   email: { driver: string; configured: boolean; fromEmail: string; host: string };
-  whatsapp: { driver: string; provider: string; configured: boolean; configurationError: string | null; endpoint: string; lastFailure: string | null; phoneNumberIdMasked: string; instanceName: string; apiVersion: string };
+  whatsapp: { driver: string; provider: string; configured: boolean; configurationError: string | null; endpoint: string; lastFailure: string | null; phoneNumberIdMasked: string; instanceName: string; testNumber: string; apiVersion: string };
   storage: { driver: string; bucket: string };
   pdf: { driver: string; chromiumAvailable: boolean };
   otp: { length: number; ttlMinutes: number; maxAttempts: number; maxResends: number };
@@ -92,7 +92,10 @@ export default function SettingsPage() {
       setRules(find<Json>("notifications.rules", {}));
       setOtp((o) => ({ ...o, ...find("otp.policy", {}) }));
       setPdf((p) => ({ ...p, ...find("pdf.options", {}) }));
-      if (ints) setIntegrations(ints);
+      if (ints) {
+        setIntegrations(ints);
+        if (ints.whatsapp.testNumber) setTestWhatsapp(ints.whatsapp.testNumber);
+      }
     } catch (err) {
       toast.error("Could not load settings", err instanceof ApiError ? err.message : undefined);
     } finally {
@@ -136,7 +139,7 @@ export default function SettingsPage() {
         `/api/settings/test-${kind}`,
         { to },
       );
-      if (res.delivered) toast.success("Test sent", `Check ${to}.`);
+      if (res.delivered) toast.success("Accepted by Wapvio", `Check WhatsApp on ${to}. Delivery is provider-controlled.`);
       else if (res.simulated)
         toast.warning(
           "Recorded but not sent",

@@ -180,7 +180,7 @@ export async function sendWhatsappTemplate(input: SendWhatsappInput) {
     const responseText = await res.text();
     let json: {
       messages?: { id: string }[];
-      data?: { msgId?: string; jid?: string; status?: string };
+      data?: { msgId?: string; jid?: string; status?: string; key?: { id?: string } };
       id?: string;
       messageId?: string;
       error?: { message?: string; error_data?: { details?: string } };
@@ -230,7 +230,7 @@ export async function sendWhatsappTemplate(input: SendWhatsappInput) {
       data: {
         status: "SENT",
         sentAt: new Date(),
-        providerMessageId: json.data?.msgId ?? json.messages?.[0]?.id ?? json.messageId ?? json.id ?? null,
+        providerMessageId: json.data?.key?.id ?? json.data?.msgId ?? json.messages?.[0]?.id ?? json.messageId ?? json.id ?? null,
       },
     });
     return { id: log.id, delivered: true };

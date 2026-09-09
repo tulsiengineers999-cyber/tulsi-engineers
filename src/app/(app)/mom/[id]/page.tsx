@@ -71,7 +71,7 @@ export default async function MomDetailPage({ params }: { params: Promise<{ id: 
     })),
     ...whatsappLogs.map((w) => ({
       id: `wa-${w.id}`,
-      title: `WhatsApp sent to ${w.toNumber}`,
+      title: `WhatsApp accepted by Wapvio for ${w.toNumber}`,
       description: w.errorMessage ?? w.bodyPreview,
       at: w.createdAt,
       status: w.status,

@@ -62,6 +62,7 @@ export const env = {
       endpoint: str("WAPIO_ENDPOINT", "https://app.wapvio.com/api/v1/send"),
       apiKey: str("WAPIO_API_KEY"),
       instanceName: str("WAPIO_INSTANCE_NAME"),
+      testNumber: str("WAPIO_TEST_NUMBER"),
     },
     defaultLanguage: str("WHATSAPP_DEFAULT_LANGUAGE", "en_US"),
   },

@@ -156,7 +156,7 @@ export function SendToClientModal({
                 <span className="font-medium">{r.channel === "EMAIL" ? "Email" : "WhatsApp"}</span>
                 {r.to ? ` to ${r.to}` : ""} —{" "}
                 {r.delivered
-                  ? "delivered"
+                  ? "accepted by Wapvio — delivery will be confirmed by WhatsApp"
                   : r.simulated
                     ? "recorded but not sent — configure WhatsApp/SMTP in Settings"
                     : (r.error ?? "could not be sent")}
